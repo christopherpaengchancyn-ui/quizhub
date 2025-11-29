@@ -96,7 +96,10 @@ h2{color:#d9b78a;margin-bottom:15px;}
 </div>
 
 <script src="quiz.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 <script>
+const socket = io();
+
 // ----------------- Configuration -----------------
 const TIME_LIMIT = 30;
 
@@ -304,6 +307,17 @@ function saveResults() {
   leaderboard[lbKey].sort((a, b) => b.score - a.score);
   if (leaderboard[lbKey].length > 10) leaderboard[lbKey] = leaderboard[lbKey].slice(0, 10);
   localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+
+  // Submit score to global leaderboard server
+  socket.emit('submitScore', {
+    category: category,
+    mode: gameMode,
+    name: PLAYER_NAME,
+    avatar: PLAYER_AVATAR,
+    score: totalPoints,
+    correct: correctCount,
+    total: qsList.length
+  });
 }
 
 // ----------------- Finish Quiz -----------------

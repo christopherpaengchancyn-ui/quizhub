@@ -24,6 +24,10 @@ const SCORING = {
   SURVIVAL_BONUS: 50
 };
 
+// Global leaderboard (in-memory, persists during server runtime)
+// Format: { "category_mode": [ { name, avatar, score, correct, total, date } ] }
+let globalLeaderboard = {};
+
 // Active rooms - now supports categories and game modes
 let rooms = {};
 /*
@@ -325,6 +329,42 @@ io.on("connection", (socket) => {
 
     io.to(`host_${roomCode}`).emit("hostLeft");
     delete hostRooms[roomCode];
+  });
+
+  // ==================== GLOBAL LEADERBOARD EVENTS ====================
+
+  // Submit score to global leaderboard
+  socket.on("submitScore", ({ category, mode, name, avatar, score, correct, total }) => {
+    const key = `${category}_${mode}`;
+    if (!globalLeaderboard[key]) {
+      globalLeaderboard[key] = [];
+    }
+
+    const date = new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+    // Add new score entry
+    globalLeaderboard[key].push({ name, avatar, score, correct, total, date });
+
+    // Sort by score descending and keep top 50
+    globalLeaderboard[key].sort((a, b) => b.score - a.score);
+    globalLeaderboard[key] = globalLeaderboard[key].slice(0, 50);
+
+    // Broadcast updated leaderboard to all connected clients
+    io.emit("leaderboardUpdated", { key, leaderboard: globalLeaderboard[key] });
+
+    console.log(`Score submitted: ${name} scored ${score} in ${key}`);
+  });
+
+  // Get leaderboard for a category/mode
+  socket.on("getLeaderboard", ({ category, mode }) => {
+    const key = `${category}_${mode}`;
+    const leaderboard = globalLeaderboard[key] || [];
+    socket.emit("leaderboardData", { key, leaderboard });
+  });
+
+  // Get all leaderboards
+  socket.on("getAllLeaderboards", () => {
+    socket.emit("allLeaderboardsData", globalLeaderboard);
   });
 
   // ==================== DISCONNECT ====================

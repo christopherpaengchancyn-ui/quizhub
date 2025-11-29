@@ -52,9 +52,12 @@ h2{color:#d9b78a;margin-bottom:15px;text-align:center;}
 </div>
 
 <script src="quiz.js"></script>
+<script src="/socket.io/socket.io.js"></script>
 <script>
 const userData = getCurrentUserData();
 const PLAYER_NAME = userData ? userData.name : 'Player';
+
+const socket = io();
 
 const MODES_INFO = {
   classic: { name: "Classic", icon: "🎮" },
@@ -75,12 +78,50 @@ const CATEGORIES_INFO = {
 
 let activeMode = 'classic';
 let activeCategory = 'HTML_CSS';
+let globalLeaderboards = {};
 
-function getLeaderboard(mode, cat){
+// Get local leaderboard (fallback)
+function getLocalLeaderboard(mode, cat){
   const lb = JSON.parse(localStorage.getItem('leaderboard') || '{}');
   const key = `${cat}_${mode}`;
   return lb[key] || [];
 }
+
+// Get combined leaderboard (global + local)
+function getLeaderboard(mode, cat){
+  const key = `${cat}_${mode}`;
+  const globalScores = globalLeaderboards[key] || [];
+  const localScores = getLocalLeaderboard(mode, cat);
+
+  // Combine both, prioritizing global scores
+  const combined = [...globalScores];
+
+  // Add local scores that aren't in global
+  localScores.forEach(local => {
+    if (!combined.some(g => g.name === local.name && g.score === local.score)) {
+      combined.push(local);
+    }
+  });
+
+  return combined.sort((a, b) => b.score - a.score);
+}
+
+// Request all leaderboards from server on connect
+socket.on('connect', () => {
+  socket.emit('getAllLeaderboards');
+});
+
+// Receive all leaderboards
+socket.on('allLeaderboardsData', (data) => {
+  globalLeaderboards = data;
+  renderLeaderboard();
+});
+
+// Receive updated leaderboard
+socket.on('leaderboardUpdated', ({ key, leaderboard }) => {
+  globalLeaderboards[key] = leaderboard;
+  renderLeaderboard();
+});
 
 function renderModeTabs(){
   const modeTabsEl = document.getElementById('modeTabs');
