@@ -121,24 +121,19 @@ h2{color:#d9b78a;margin-bottom:15px;text-align:center;}
   <script src="/socket.io/socket.io.js"></script>
   <script>
     // Check login
-    if (!requireLogin()) {
-      // Redirect handled by requireLogin
-    }
+    requireLogin();
 
     // Get user data safely
     let PLAYER_NAME = 'Host';
     let PLAYER_AVATAR = '😀';
-    try {
-      const userData = getCurrentUserData();
-      if (userData) {
-        PLAYER_NAME = userData.name || 'Host';
-        PLAYER_AVATAR = userData.avatar || '😀';
-      }
-    } catch(e) {
-      console.log('Error getting user data:', e);
+    const userData = getCurrentUserData();
+    if (userData) {
+      PLAYER_NAME = userData.name || 'Host';
+      PLAYER_AVATAR = userData.avatar || '😀';
     }
 
-    let socket;
+    // Initialize socket globally
+    const socket = io();
     let roomCode = '';
     let questions = [];
     let players = [];
@@ -150,37 +145,6 @@ h2{color:#d9b78a;margin-bottom:15px;text-align:center;}
       for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
       return code;
     }
-
-    // Initialize when page loads
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('Page loaded, initializing...');
-
-      // Generate and show room code
-      roomCode = generateRoomCode();
-      document.getElementById('roomCode').textContent = roomCode;
-      console.log('Room code generated:', roomCode);
-
-      // Connect socket
-      try {
-        socket = io();
-        socket.emit('createHostRoom', {
-          roomCode: roomCode,
-          hostName: PLAYER_NAME,
-          hostAvatar: PLAYER_AVATAR
-        });
-        console.log('Socket connected');
-      } catch(e) {
-        console.log('Socket error:', e);
-      }
-
-      // Setup radio button listeners
-      document.querySelectorAll('input[name="correctAnswer"]').forEach(radio => {
-        radio.addEventListener('change', updateCorrectLabels);
-      });
-
-      // Setup add question button
-      document.getElementById('addQuestionBtn').addEventListener('click', addQuestion);
-    });
 
     // Copy room code
     function copyRoomCode() {
@@ -200,8 +164,6 @@ h2{color:#d9b78a;margin-bottom:15px;text-align:center;}
 
     // Add question function
     function addQuestion() {
-      console.log('Add question clicked');
-
       if (questions.length >= 20) {
         alert('Maximum 20 questions allowed!');
         return;
@@ -213,30 +175,21 @@ h2{color:#d9b78a;margin-bottom:15px;text-align:center;}
       const c3 = document.getElementById('choice3').value.trim();
       const c4 = document.getElementById('choice4').value.trim();
 
-      console.log('Question:', qText);
-      console.log('Choices:', c1, c2, c3, c4);
-
       if (!qText || !c1 || !c2 || !c3 || !c4) {
         alert('Please fill in all fields!');
         return;
       }
 
-      // Get which choice is correct from radio buttons
       const selectedRadio = document.querySelector('input[name="correctAnswer"]:checked');
       const correctIndex = parseInt(selectedRadio.value);
       const choices = [c1, c2, c3, c4];
       const correctAnswer = choices[correctIndex - 1];
 
-      console.log('Correct answer:', correctAnswer);
-
       questions.push({ q: qText, a: correctAnswer, choices: choices });
       updateQuestionList();
       clearInputs();
 
-      if (socket && socket.connected) {
-        socket.emit('updateHostQuestions', { roomCode, questions });
-      }
-
+      socket.emit('updateHostQuestions', { roomCode, questions });
       alert('Question added! Total: ' + questions.length);
     }
 
@@ -273,34 +226,22 @@ h2{color:#d9b78a;margin-bottom:15px;text-align:center;}
       socket.emit('updateHostQuestions', { roomCode, questions });
     }
 
-    // Check if can start
     function checkStartConditions() {
       const canStart = questions.length >= 5 && players.length >= 1;
       document.getElementById('startBtn').disabled = !canStart;
       document.getElementById('minWarning').style.display = questions.length >= 5 ? 'none' : 'block';
 
       if (players.length >= 1 && questions.length >= 5) {
-        document.getElementById('statusBadge').textContent = 'Ready to start!';
+        document.getElementById('statusBadge').textContent = '✅ Ready to start!';
         document.getElementById('statusBadge').className = 'status-badge status-ready';
+      } else if (players.length >= 1) {
+        document.getElementById('statusBadge').textContent = `👥 ${players.length} player(s) joined`;
+        document.getElementById('statusBadge').className = 'status-badge status-waiting';
       } else {
-        document.getElementById('statusBadge').textContent = 'Waiting for players...';
+        document.getElementById('statusBadge').textContent = '⏳ Waiting for players...';
         document.getElementById('statusBadge').className = 'status-badge status-waiting';
       }
     }
-
-    // Player joined
-    socket.on('playerJoinedHostRoom', (data) => {
-      players = data.players;
-      updatePlayersList();
-      checkStartConditions();
-    });
-
-    // Player left
-    socket.on('playerLeftHostRoom', (data) => {
-      players = data.players;
-      updatePlayersList();
-      checkStartConditions();
-    });
 
     function updatePlayersList() {
       const list = document.getElementById('playersList');
@@ -317,19 +258,58 @@ h2{color:#d9b78a;margin-bottom:15px;text-align:center;}
       }
     }
 
-    // Start game
     function startGame() {
       if (questions.length < 5) { alert('Add at least 5 questions!'); return; }
       if (players.length < 1) { alert('Wait for at least 1 player to join!'); return; }
-
       socket.emit('startHostGame', { roomCode, questions });
     }
+
+    // ==================== SOCKET EVENT LISTENERS ====================
+
+    // Player joined
+    socket.on('playerJoinedHostRoom', (data) => {
+      console.log('Player joined:', data);
+      players = data.players;
+      updatePlayersList();
+      checkStartConditions();
+    });
+
+    // Player left
+    socket.on('playerLeftHostRoom', (data) => {
+      console.log('Player left:', data);
+      players = data.players;
+      updatePlayersList();
+      checkStartConditions();
+    });
 
     // Game started - redirect to host view
     socket.on('hostGameStarted', (data) => {
       sessionStorage.setItem('hostRoomCode', roomCode);
       sessionStorage.setItem('isHost', 'true');
       window.location.href = 'host-game.html';
+    });
+
+    // ==================== INITIALIZE ON PAGE LOAD ====================
+    document.addEventListener('DOMContentLoaded', function() {
+      // Generate and show room code
+      roomCode = generateRoomCode();
+      document.getElementById('roomCode').textContent = roomCode;
+
+      // Create room on server
+      socket.emit('createHostRoom', {
+        roomCode: roomCode,
+        hostName: PLAYER_NAME,
+        hostAvatar: PLAYER_AVATAR
+      });
+      console.log('Host room created:', roomCode, 'by', PLAYER_NAME);
+
+      // Setup radio button listeners
+      document.querySelectorAll('input[name="correctAnswer"]').forEach(radio => {
+        radio.addEventListener('change', updateCorrectLabels);
+      });
+
+      // Setup add question button
+      document.getElementById('addQuestionBtn').addEventListener('click', addQuestion);
     });
   </script>
 </body>
