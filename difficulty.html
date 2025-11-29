@@ -22,7 +22,9 @@ h2{color:#d9b78a;margin-bottom:5px;font-size:clamp(20px,5vw,24px);}
 .btn:disabled{opacity:0.5;cursor:not-allowed;}
 .btn-back{background:#3a3632;margin-top:10px;}
 .info{font-size:12px;color:rgba(255,255,255,0.4);margin-top:15px;padding:10px;background:rgba(255,255,255,0.05);border-radius:8px;}
-@media(max-width:400px){.card{padding:20px 15px;}.categories{gap:8px;}.category-btn{padding:15px 10px;min-height:70px;}.cat-icon{font-size:24px;}.cat-name{font-size:12px;}.btn{padding:12px;font-size:14px;}.subtitle{font-size:13px;}}
+.footer{text-align:center;padding:20px 15px;margin-top:20px;border-top:1px solid rgba(255,255,255,0.1);font-size:12px;color:rgba(255,255,255,0.4);}
+.footer-line{margin:5px 0;}
+@media(max-width:400px){.card{padding:20px 15px;}.categories{gap:8px;}.category-btn{padding:15px 10px;min-height:70px;}.cat-icon{font-size:24px;}.cat-name{font-size:12px;}.btn{padding:12px;font-size:14px;}.subtitle{font-size:13px;}.footer{padding:15px 10px;font-size:11px;}}
 </style>
 </head>
 <body>
@@ -37,6 +39,12 @@ h2{color:#d9b78a;margin-bottom:5px;font-size:clamp(20px,5vw,24px);}
   <button class="btn btn-back" onclick="window.location.href='dashboard.html'">← Back</button>
 
   <div class="info">⏳ You'll wait in a lobby until another player joins the same category.</div>
+
+  <div class="footer">
+    <div class="footer-line">© 2024 QuizHub | BSIT - WMAD</div>
+    <div class="footer-line">Isabela State University</div>
+    <div class="footer-line">Made with ❤️ by Christopher, Ashlee & Marjorie</div>
+  </div>
 </div>
 
 <script src="quiz.js"></script>
