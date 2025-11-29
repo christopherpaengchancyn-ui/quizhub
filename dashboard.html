@@ -118,11 +118,7 @@ document.getElementById('userName').innerText = userData ? userData.name : 'Play
 // Handle avatar - could be emoji or image
 const avatar = userData ? userData.avatar : '😎';
 const avatarEl = document.getElementById('userAvatar');
-if (avatar && (avatar.endsWith('.jpg') || avatar.endsWith('.png') || avatar.endsWith('.gif'))) {
-  avatarEl.innerHTML = `<img src="${avatar}" alt="Avatar">`;
-} else {
-  avatarEl.innerText = avatar;
-}
+avatarEl.innerHTML = renderAvatar(avatar);
 
 // Load stats
 if(userData && userData.stats){

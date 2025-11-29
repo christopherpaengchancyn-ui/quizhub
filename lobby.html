@@ -113,7 +113,7 @@ h2{color:#d9b78a;margin-bottom:15px;font-size:clamp(20px,5vw,24px);}
       const grid = document.getElementById('playersGrid');
       grid.innerHTML = players.map(p => `
         <div class="player-card ${p.name === PLAYER_NAME ? 'you' : ''}">
-          <div class="avatar">${p.avatar}</div>
+          <div class="avatar">${renderAvatar(p.avatar, 28)}</div>
           <div class="name">${p.name}${p.name === PLAYER_NAME ? ' (You)' : ''}</div>
         </div>
       `).join('');

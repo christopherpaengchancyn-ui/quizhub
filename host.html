@@ -251,7 +251,7 @@ h2{color:#d9b78a;margin-bottom:15px;text-align:center;}
       } else {
         list.innerHTML = players.map(p => `
           <div class="player-chip">
-            <span class="avatar">${p.avatar}</span>
+            <span class="avatar">${renderAvatar(p.avatar, 18)}</span>
             <span class="name">${p.name}</span>
           </div>
         `).join('');

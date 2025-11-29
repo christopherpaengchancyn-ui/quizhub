@@ -233,7 +233,7 @@ body{font-family:Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;
       list.innerHTML = sorted.map(p => `
         <div class="score-row">
           <div class="player-info">
-            <span>${p.avatar}</span>
+            <span>${renderAvatar(p.avatar, 20)}</span>
             <span>${p.name}${p.name === PLAYER_NAME ? ' (You)' : ''}</span>
           </div>
           <span class="player-score">${p.score} pts</span>
@@ -250,7 +250,7 @@ body{font-family:Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;
         <div class="rank-item">
           <div class="rank-info">
             <span class="rank-medal">${medals[i] || '🎮'}</span>
-            <span>${p.avatar}</span>
+            <span>${renderAvatar(p.avatar, 24)}</span>
             <span style="color:#d9b78a;">${p.name}${p.name === PLAYER_NAME ? ' (You)' : ''}</span>
           </div>
           <span class="rank-score">${p.score} pts</span>

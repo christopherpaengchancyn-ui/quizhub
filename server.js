@@ -288,6 +288,11 @@ io.on("connection", (socket) => {
     if (!room) return;
     socket.join(`host_${roomCode}`);
     room.hostSocketId = socket.id;
+
+    // Send current scores and player count to host
+    socket.emit("hostLiveScores", { scores: room.scores });
+    socket.emit("playerFinished", { finishedCount: room.finishedCount || 0 });
+    console.log(`Host reconnected to room ${roomCode}, players: ${room.players.length}`);
   });
 
   // Player submits answer in host game

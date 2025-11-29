@@ -69,7 +69,9 @@ const userEmail = localStorage.getItem('sn_current');
 // Display user info
 document.getElementById('userName').innerText = userData ? userData.name : 'Player';
 document.getElementById('userEmail').innerText = userEmail || '';
-document.getElementById('currentAvatar').innerText = userData ? userData.avatar : '😎';
+const currentAvatarEl = document.getElementById('currentAvatar');
+const userAvatar = userData ? userData.avatar : '😎';
+currentAvatarEl.innerHTML = renderAvatar(userAvatar, 80);
 
 // Display stats
 if(userData && userData.stats){
@@ -92,7 +94,8 @@ const avatarGrid = document.getElementById('avatarGrid');
 AVATARS.forEach(avatar => {
   const btn = document.createElement('span');
   btn.className = 'avatar-option' + (avatar === (userData ? userData.avatar : '😎') ? ' selected' : '');
-  btn.innerText = avatar;
+  btn.innerHTML = renderAvatar(avatar, 28);
+  btn.dataset.avatar = avatar;
   btn.onclick = () => changeAvatar(avatar);
   avatarGrid.appendChild(btn);
 });
@@ -103,9 +106,9 @@ function toggleAvatarGrid(){
 
 function changeAvatar(avatar){
   updateAvatar(avatar);
-  document.getElementById('currentAvatar').innerText = avatar;
+  document.getElementById('currentAvatar').innerHTML = renderAvatar(avatar, 80);
   document.querySelectorAll('.avatar-option').forEach(el => {
-    el.classList.toggle('selected', el.innerText === avatar);
+    el.classList.toggle('selected', el.dataset.avatar === avatar);
   });
   avatarGrid.classList.remove('show');
 }

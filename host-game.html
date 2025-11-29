@@ -113,7 +113,7 @@ h2{color:#d9b78a;margin-bottom:15px;text-align:center;font-size:clamp(20px,5vw,2
       const list = document.getElementById('scoreboardList');
       const sorted = Object.values(players).sort((a, b) => b.score - a.score);
       const medals = ['🥇', '🥈', '🥉'];
-      
+
       if (sorted.length === 0) {
         list.innerHTML = '<p class="empty-msg">Waiting for scores...</p>';
         return;
@@ -123,7 +123,7 @@ h2{color:#d9b78a;margin-bottom:15px;text-align:center;font-size:clamp(20px,5vw,2
         <div class="player-row ${i === 0 ? 'first' : i === 1 ? 'second' : i === 2 ? 'third' : ''}">
           <div class="player-left">
             <span class="player-rank">${medals[i] || (i + 1)}</span>
-            <span class="player-avatar">${p.avatar}</span>
+            <span class="player-avatar">${renderAvatar(p.avatar, 24)}</span>
             <span class="player-name">${p.name}</span>
           </div>
           <div class="player-right">

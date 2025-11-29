@@ -1,5 +1,18 @@
 // --- Avatars List ---
-const AVATARS = ['😎', '🎮', '💻', '🚀', '⚡', '🔥', '🎯', '🏆', '🌟', '💡', '🎓', '📱', '🖥️', '🤖', '👨‍💻', '👩‍💻', '🦊', '🐱', '🐶', '🦁'];
+const AVATARS = ['😎', '🎮', '💻', '🚀', '⚡', '🔥', '🎯', '🏆', '🌟', '💡', '🎓', '📱', '🖥️', '🤖', '👨‍💻', '👩‍💻', '🦊', '🐱', '🐶', '🦁', 'isulogo', 'itlogo'];
+
+// --- Render Avatar (handles emoji or logo images) ---
+function renderAvatar(avatar, size = 50) {
+  if (!avatar) avatar = '😎';
+  if (avatar === 'isulogo') {
+    return `<img src="isulogo.jpg" alt="ISU" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;">`;
+  } else if (avatar === 'itlogo') {
+    return `<img src="ITlogo.jpg" alt="IT" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;">`;
+  } else if (avatar.endsWith('.jpg') || avatar.endsWith('.png') || avatar.endsWith('.gif')) {
+    return `<img src="${avatar}" alt="Avatar" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;">`;
+  }
+  return avatar;
+}
 
 // --- Accounts ---
 function loadAccounts(){ return JSON.parse(localStorage.getItem('sn_accounts')||'{}'); }

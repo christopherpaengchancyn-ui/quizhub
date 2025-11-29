@@ -193,7 +193,7 @@ function renderLeaderboard(){
       html += `
         <li class="leaderboard-item ${isCurrentPlayer ? 'current-player' : ''}">
           <div class="rank ${rankClass}">${rankIcon}</div>
-          <span class="player-avatar">${e.avatar || '😎'}</span>
+          <span class="player-avatar">${renderAvatar(e.avatar || '😎', 32)}</span>
           <div class="player-info">
             <div class="player-name">${e.name}</div>
             <div class="player-date">${e.date || ''}</div>
