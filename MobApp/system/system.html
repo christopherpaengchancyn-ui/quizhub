@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Floppy Ball Game</title>
+<style>
+    body {
+        margin: 0;
+        overflow: hidden;
+        background: #70c5ce;
+        font-family: Arial, sans-serif;
+    }
+
+    #game {
+        width: 100%;
+        height: 100vh;
+        background: #70c5ce;
+        position: relative;
+        overflow: hidden;
+    }
+
+    /* The ball (player) */
+    #ball {
+        width: 40px;
+        height: 40px;
+        background: #ff3333;
+        border-radius: 50%;
+        position: absolute;
+        top: 150px;
+        left: 100px;
+    }
+
+    .pipe {
+        position: absolute;
+        width: 70px;
+        background: #228B22;
+        left: 100%;
+    }
+
+    #score {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        color: white;
+        font-size: 30px;
+        font-weight: bold;
+    }
+</style>
+</head>
+<body>
+
+<div id="game">
+    <div id="ball"></div>
+    <div id="score">0</div>
+</div>
+
+<script>
+const game = document.getElementById("game");
+const ball = document.getElementById("ball");
+const scoreDisplay = document.getElementById("score");
+
+let ballY = 150;
+let gravity = 2;
+let velocity = 0;
+let gameOver = false;
+let score = 0;
+
+// Make the ball jump
+document.addEventListener("keydown", () => {
+    if (gameOver) location.reload(); // restart on keypress
+    velocity = -20; // jump force
+});
+
+// Pipe generator
+function createPipe() {
+    if (gameOver) return;
+
+    let pipeTop = document.createElement("div");
+    let pipeBottom = document.createElement("div");
+
+    pipeTop.classList.add("pipe");
+    pipeBottom.classList.add("pipe");
+
+    let gap = 150;
+    let pipeOffset = Math.floor(Math.random() * 250) + 50;
+
+    pipeTop.style.height = pipeOffset + "px";
+    pipeTop.style.top = "0px";
+
+    pipeBottom.style.height = (600 - pipeOffset - gap) + "px";
+    pipeBottom.style.bottom = "0px";
+
+    game.appendChild(pipeTop);
+    game.appendChild(pipeBottom);
+
+    let pipeX = window.innerWidth;
+
+    function movePipe() {
+        if (gameOver) {
+            pipeTop.remove();
+            pipeBottom.remove();
+            return;
+        }
+
+        pipeX -= 3;
+        pipeTop.style.left = pipeX + "px";
+        pipeBottom.style.left = pipeX + "px";
+
+        // Collision detection
+        let ballRect = ball.getBoundingClientRect();
+        let topRect = pipeTop.getBoundingClientRect();
+        let bottomRect = pipeBottom.getBoundingClientRect();
+
+        if (
+            (ballRect.right > topRect.left && ballRect.left < topRect.right &&
+            (ballRect.top < topRect.bottom)) ||
+            
+            (ballRect.right > bottomRect.left && ballRect.left < bottomRect.right &&
+            (ballRect.bottom > bottomRect.top))
+        ) {
+            endGame();
+        }
+
+        // Score when passing pipes
+        if (pipeX + 70 === 100) {
+            score++;
+            scoreDisplay.textContent = score;
+        }
+
+        // Remove pipes when they leave screen
+        if (pipeX < -70) {
+            pipeTop.remove();
+            pipeBottom.remove();
+            return;
+        }
+
+        requestAnimationFrame(movePipe);
+    }
+    movePipe();
+}
+
+// Game Loop
+function update() {
+    if (gameOver) return;
+
+    velocity += gravity;
+    ballY += velocity;
+
+    ball.style.top = ballY + "px";
+
+    // Ground or ceiling hit
+    if (ballY > window.innerHeight - 40 || ballY < 0) {
+        endGame();
+    }
+
+    requestAnimationFrame(update);
+}
+
+// Start pipes every 2 seconds
+setInterval(() => {
+    if (!gameOver) createPipe();
+}, 2000);
+
+update();
+
+// Game Over Function
+function endGame() {
+    gameOver = true;
+    scoreDisplay.textContent = "Game Over! Score: " + score + " (Press any key to restart)";
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Register - QuizHub</title>
+<style>
+*{box-sizing:border-box;}
+body{font-family:Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;padding:15px;}
+.card{background:#24201c;padding:40px;border-radius:14px;width:100%;max-width:400px;box-shadow:0 6px 30px rgba(2,2,2,0.6);}
+@media(max-width:480px){.card{padding:25px;}.logo-img{width:50px!important;height:50px!important;}.selected-avatar{font-size:40px!important;}.avatar-option{font-size:24px!important;padding:6px!important;}}
+h2{color:#d9b78a;margin-bottom:20px;text-align:center;}
+input{width:100%;padding:12px;margin:10px 0;border-radius:10px;border:none;background:#1a1817;color:#cfc5b8;box-sizing:border-box;}
+.btn{width:100%;padding:12px;margin-top:10px;border-radius:10px;border:none;background:linear-gradient(90deg,#b68b5a,#d9b78a);color:#fff;font-weight:600;cursor:pointer;transition:transform 0.2s;}
+.btn:hover{transform:scale(1.02);}
+.muted{text-align:center;margin-top:15px;font-size:14px;color:rgba(255,255,255,0.6);}
+.muted a{color:#d9b78a;text-decoration:none;}
+.logo-section{display:flex;justify-content:center;align-items:center;gap:15px;margin-bottom:15px;}
+.logo-img{width:60px;height:60px;border-radius:50%;object-fit:cover;border:2px solid #d9b78a;}
+.app-title{color:#d9b78a;font-size:14px;text-align:center;margin-bottom:15px;font-weight:600;}
+.avatar-section{text-align:center;margin:15px 0;}
+.avatar-label{font-size:14px;color:rgba(255,255,255,0.6);margin-bottom:10px;display:block;}
+.avatar-grid{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:10px;}
+.avatar-option{font-size:28px;padding:8px;border-radius:10px;cursor:pointer;background:transparent;border:2px solid transparent;transition:all 0.2s;}
+.avatar-option:hover{background:rgba(255,255,255,0.1);}
+.avatar-option.selected{border-color:#d9b78a;background:rgba(217,183,138,0.2);}
+.avatar-option.img-avatar{padding:4px;display:flex;align-items:center;justify-content:center;}
+.avatar-option.img-avatar img{width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid #d9b78a;}
+.selected-avatar{font-size:50px;margin-bottom:10px;}
+.selected-avatar img{width:60px;height:60px;border-radius:50%;object-fit:cover;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo-section">
+    <img src="isulogo.jpg" alt="ISU Logo" class="logo-img">
+    <img src="ITlogo.jpg" alt="IT Logo" class="logo-img">
+  </div>
+  <div class="app-title">🎓 QuizHub</div>
+  <h2>Create Account</h2>
+
+  <div class="avatar-section">
+    <div class="selected-avatar" id="selectedAvatar">😎</div>
+    <span class="avatar-label">Choose your avatar</span>
+    <div class="avatar-grid" id="avatarGrid"></div>
+  </div>
+
+  <input id="regName" type="text" placeholder="Your Name">
+  <input id="regEmail" type="email" placeholder="Email">
+  <input id="regPassword" type="password" placeholder="Password">
+  <button class="btn" onclick="register()">Create Account</button>
+  <div class="muted">Already have an account? <a href="index.html">Login</a></div>
+</div>
+
+<script src="quiz.js"></script>
+<script>
+let selectedAvatar = '😎';
+const customAvatars = ['isulogo.jpg', 'ITlogo.jpg'];
+
+// Generate avatar grid
+const avatarGrid = document.getElementById('avatarGrid');
+
+// Add custom image avatars first
+customAvatars.forEach(imgSrc => {
+  const btn = document.createElement('span');
+  btn.className = 'avatar-option img-avatar';
+  btn.innerHTML = `<img src="${imgSrc}" alt="Avatar">`;
+  btn.dataset.avatar = imgSrc;
+  btn.onclick = () => selectAvatar(imgSrc, true);
+  avatarGrid.appendChild(btn);
+});
+
+// Add emoji avatars
+AVATARS.forEach(avatar => {
+  const btn = document.createElement('span');
+  btn.className = 'avatar-option' + (avatar === selectedAvatar ? ' selected' : '');
+  btn.innerText = avatar;
+  btn.onclick = () => selectAvatar(avatar, false);
+  avatarGrid.appendChild(btn);
+});
+
+function selectAvatar(avatar, isImage){
+  selectedAvatar = avatar;
+  const display = document.getElementById('selectedAvatar');
+  if (isImage) {
+    display.innerHTML = `<img src="${avatar}" alt="Avatar">`;
+  } else {
+    display.innerHTML = avatar;
+  }
+  document.querySelectorAll('.avatar-option').forEach(el => {
+    const isMatch = el.dataset.avatar === avatar || el.innerText === avatar;
+    el.classList.toggle('selected', isMatch);
+  });
+}
+
+function register(){
+  const name = document.getElementById('regName').value.trim();
+  const email = document.getElementById('regEmail').value.trim();
+  const pass = document.getElementById('regPassword').value;
+
+  if(!name || !email || !pass){
+    alert('Please fill in all fields!');
+    return;
+  }
+
+  if(doRegister(name, email, pass, selectedAvatar)){
+    alert('Account created! Please login.');
+    window.location.href='index.html';
+  }
+}
+</script>
+</body>
+</html>

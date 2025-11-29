@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Dashboard - QuizHub</title>
+<style>
+*{box-sizing:border-box;}
+body{font-family:Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;padding:15px;}
+.card{background:#24201c;padding:30px;border-radius:14px;width:100%;max-width:450px;text-align:center;box-shadow:0 6px 30px rgba(2,2,2,0.6);}
+@media(max-width:480px){.card{padding:20px;}.stats-grid{grid-template-columns:repeat(2,1fr)!important;}.game-modes{grid-template-columns:repeat(3,1fr);gap:5px;}.mode-btn{padding:12px 8px;}.mode-icon{font-size:20px;}.mode-name{font-size:10px;}.btn{padding:10px;font-size:14px;}.logo-img{width:40px!important;height:40px!important;}}
+.logo-section{display:flex;justify-content:center;align-items:center;gap:15px;margin-bottom:15px;}
+.logo-img{width:50px;height:50px;border-radius:50%;object-fit:cover;border:2px solid #d9b78a;}
+.app-title{color:#d9b78a;font-size:14px;text-align:center;margin-bottom:15px;font-weight:600;}
+.profile-section{display:flex;align-items:center;gap:15px;padding:15px;background:rgba(255,255,255,0.03);border-radius:12px;margin-bottom:20px;}
+.avatar{font-size:50px;cursor:pointer;transition:transform 0.2s;}
+.avatar:hover{transform:scale(1.1);}
+.avatar img{width:50px;height:50px;border-radius:50%;object-fit:cover;}
+.profile-info{text-align:left;flex:1;}
+.profile-name{font-size:20px;color:#d9b78a;font-weight:600;}
+.profile-stats{font-size:12px;color:rgba(255,255,255,0.5);margin-top:5px;}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:15px 0;}
+.stat-box{background:rgba(255,255,255,0.03);padding:10px;border-radius:8px;}
+.stat-value{font-size:20px;color:#d9b78a;font-weight:bold;}
+.stat-label{font-size:10px;color:rgba(255,255,255,0.5);text-transform:uppercase;}
+.section-title{color:#b68b5a;font-size:12px;margin:20px 0 10px 0;text-transform:uppercase;letter-spacing:1px;}
+.btn{width:100%;padding:12px;margin:6px 0;border-radius:10px;border:none;color:#fff;font-weight:600;cursor:pointer;transition:transform 0.2s;display:flex;align-items:center;justify-content:center;gap:8px;}
+.btn:hover{transform:scale(1.02);}
+.btn-single{background:linear-gradient(90deg,#5a8bb6,#8ad9d9);}
+.btn-multi{background:linear-gradient(90deg,#b65a8b,#d98ad9);}
+.btn-secondary{background:#3a3632;}
+.game-modes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:10px 0;}
+.mode-btn{background:rgba(255,255,255,0.05);padding:15px 10px;border-radius:10px;border:none;color:#cfc5b8;cursor:pointer;transition:all 0.2s;}
+.mode-btn:hover{background:rgba(255,255,255,0.1);}
+.mode-btn.selected{background:rgba(217,183,138,0.2);border:1px solid #d9b78a;}
+.mode-icon{font-size:24px;display:block;margin-bottom:5px;}
+.mode-name{font-size:11px;font-weight:600;}
+.divider{height:1px;background:rgba(255,255,255,0.1);margin:15px 0;}
+.bottom-btns{display:flex;gap:8px;}
+.bottom-btns .btn{flex:1;}
+</style>
+</head>
+<body>
+<div class="card">
+  <!-- Logo Section -->
+  <div class="logo-section">
+    <img src="isulogo.jpg" alt="ISU Logo" class="logo-img">
+    <img src="ITlogo.jpg" alt="IT Logo" class="logo-img">
+  </div>
+  <div class="app-title">🎓 QuizHub</div>
+
+  <!-- Profile Section -->
+  <div class="profile-section">
+    <div class="avatar" id="userAvatar" onclick="window.location.href='profile.html'" title="View Profile">😎</div>
+    <div class="profile-info">
+      <div class="profile-name" id="userName">Player</div>
+      <div class="profile-stats">QuizHub Master</div>
+    </div>
+  </div>
+
+  <!-- Stats Grid -->
+  <div class="stats-grid">
+    <div class="stat-box"><div class="stat-value" id="statGames">0</div><div class="stat-label">Games</div></div>
+    <div class="stat-box"><div class="stat-value" id="statWins">0</div><div class="stat-label">Wins</div></div>
+    <div class="stat-box"><div class="stat-value" id="statStreak">0</div><div class="stat-label">Best Streak</div></div>
+    <div class="stat-box"><div class="stat-value" id="statScore">0</div><div class="stat-label">Total Pts</div></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- Game Mode Selection -->
+  <div class="section-title">🎮 Select Game Mode</div>
+  <div class="game-modes">
+    <button class="mode-btn selected" onclick="selectMode('classic')" id="mode-classic">
+      <span class="mode-icon">🎮</span>
+      <span class="mode-name">Classic</span>
+    </button>
+    <button class="mode-btn" onclick="selectMode('survival')" id="mode-survival">
+      <span class="mode-icon">💀</span>
+      <span class="mode-name">Survival</span>
+    </button>
+    <button class="mode-btn" onclick="selectMode('speed')" id="mode-speed">
+      <span class="mode-icon">⚡</span>
+      <span class="mode-name">Speed Run</span>
+    </button>
+  </div>
+
+  <!-- Play Buttons -->
+  <div class="section-title">🚀 Start Playing</div>
+  <button class="btn btn-single" onclick="playSingle()">⚡ Single Player</button>
+  <button class="btn btn-multi" onclick="playMulti()">👥 Quick Match</button>
+
+  <div class="divider"></div>
+
+  <!-- Host/Join Buttons -->
+  <div class="section-title">🎯 Custom Games</div>
+  <button class="btn btn-host" onclick="window.location.href='host.html'" style="background:linear-gradient(90deg,#ffd700,#ff9500);">🎮 Host a Game</button>
+  <button class="btn btn-join" onclick="window.location.href='join.html'" style="background:linear-gradient(90deg,#4ade80,#22c55e);">🔗 Join a Game</button>
+
+  <div class="divider"></div>
+
+  <!-- Bottom Buttons -->
+  <div class="bottom-btns">
+    <button class="btn btn-secondary" onclick="window.location.href='leaderboard.html'">🏆 Leaderboard</button>
+    <button class="btn btn-secondary" onclick="window.location.href='about.html'">ℹ️ About</button>
+  </div>
+  <button class="btn btn-secondary" onclick="logout()" style="margin-top:8px;">🚪 Logout</button>
+</div>
+
+<script src="quiz.js"></script>
+<script>
+requireLogin();
+
+// Load user data
+const userData = getCurrentUserData();
+document.getElementById('userName').innerText = userData ? userData.name : 'Player';
+
+// Handle avatar - could be emoji or image
+const avatar = userData ? userData.avatar : '😎';
+const avatarEl = document.getElementById('userAvatar');
+if (avatar && (avatar.endsWith('.jpg') || avatar.endsWith('.png') || avatar.endsWith('.gif'))) {
+  avatarEl.innerHTML = `<img src="${avatar}" alt="Avatar">`;
+} else {
+  avatarEl.innerText = avatar;
+}
+
+// Load stats
+if(userData && userData.stats){
+  document.getElementById('statGames').innerText = userData.stats.gamesPlayed || 0;
+  document.getElementById('statWins').innerText = userData.stats.wins || 0;
+  document.getElementById('statStreak').innerText = userData.stats.bestStreak || 0;
+  document.getElementById('statScore').innerText = userData.stats.totalScore || 0;
+}
+
+// Game mode selection
+let selectedMode = 'classic';
+function selectMode(mode){
+  selectedMode = mode;
+  document.querySelectorAll('.mode-btn').forEach(btn => btn.classList.remove('selected'));
+  document.getElementById('mode-' + mode).classList.add('selected');
+  sessionStorage.setItem('gameMode', mode);
+}
+
+function playSingle(){
+  sessionStorage.setItem('gameMode', selectedMode);
+  window.location.href = 'category-select.html';
+}
+
+function playMulti(){
+  sessionStorage.setItem('gameMode', selectedMode);
+  window.location.href = 'difficulty.html';
+}
+
+function logout(){
+  localStorage.removeItem('sn_current');
+  window.location.href = 'index.html';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Host View - QuizHub</title>
+  <style>
+body{font-family:Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;justify-content:center;align-items:flex-start;padding:40px 20px;margin:0;min-height:100vh;box-sizing:border-box;}
+.card{background:#24201c;padding:30px;border-radius:14px;width:650px;max-width:100%;box-shadow:0 6px 30px rgba(2,2,2,0.6);}
+h2{color:#d9b78a;margin-bottom:15px;text-align:center;}
+.room-badge{background:rgba(182,139,90,0.15);padding:6px 16px;border-radius:20px;display:inline-block;color:#d9b78a;font-family:monospace;letter-spacing:3px;font-size:14px;}
+.status-bar{text-align:center;margin:20px 0;}
+.status-badge{padding:8px 20px;border-radius:20px;font-size:14px;display:inline-block;}
+.status-playing{background:rgba(74,222,128,0.15);color:#4ade80;animation:pulse 2s infinite;}
+.status-finished{background:rgba(255,215,0,0.15);color:#ffd700;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:0.7;}}
+.progress-box{background:rgba(255,255,255,0.02);padding:15px;border-radius:10px;margin:15px 0;text-align:center;}
+.progress-text{color:rgba(255,255,255,0.6);font-size:14px;margin-bottom:10px;}
+.progress-bar{height:8px;background:#3a3632;border-radius:4px;overflow:hidden;}
+.progress-fill{height:100%;background:linear-gradient(90deg,#5a8bb6,#8ad9d9);transition:width 0.5s;}
+.section-title{color:#b68b5a;font-size:12px;margin:20px 0 12px 0;text-transform:uppercase;letter-spacing:1px;}
+.scoreboard{margin:15px 0;}
+.player-row{display:flex;align-items:center;justify-content:space-between;padding:12px 15px;background:rgba(255,255,255,0.03);border-radius:10px;margin:8px 0;transition:all 0.3s;}
+.player-row.first{background:rgba(255,215,0,0.08);border:1px solid rgba(255,215,0,0.2);}
+.player-row.second{background:rgba(192,192,192,0.08);border:1px solid rgba(192,192,192,0.2);}
+.player-row.third{background:rgba(205,127,50,0.08);border:1px solid rgba(205,127,50,0.2);}
+.player-left{display:flex;align-items:center;gap:12px;}
+.player-rank{font-size:20px;width:30px;text-align:center;}
+.player-avatar{font-size:28px;}
+.player-name{color:#cfc5b8;font-size:15px;}
+.player-right{text-align:right;}
+.player-score{font-size:20px;font-weight:bold;color:#8ad9d9;}
+.player-correct{color:rgba(255,255,255,0.4);font-size:12px;}
+.empty-msg{color:rgba(255,255,255,0.4);text-align:center;padding:20px;font-size:14px;}
+.btn{width:100%;padding:12px;border-radius:10px;border:none;background:#3a3632;color:#cfc5b8;font-weight:600;cursor:pointer;transition:all 0.2s;margin-top:15px;}
+.btn:hover{background:#4a4642;}
+.btn-end{background:rgba(255,100,100,0.15);color:#ff6b6b;}
+.btn-end:hover{background:rgba(255,100,100,0.25);}
+  </style>
+</head>
+<body>
+<div class="card">
+  <h2>🎮 Host View</h2>
+  <div style="text-align:center;margin-bottom:20px;">
+    <span class="room-badge" id="roomCode">------</span>
+  </div>
+
+  <div class="status-bar">
+    <span class="status-badge status-playing" id="statusBadge">🎯 Game in Progress...</span>
+  </div>
+
+  <div class="progress-box">
+    <div class="progress-text">Players Finished: <span id="finishedCount">0</span> / <span id="totalPlayers">0</span></div>
+    <div class="progress-bar">
+      <div class="progress-fill" id="progressFill" style="width:0%"></div>
+    </div>
+  </div>
+
+  <div class="section-title">📊 Live Scoreboard</div>
+  <div class="scoreboard" id="scoreboardList">
+    <p class="empty-msg">Waiting for scores...</p>
+  </div>
+
+  <button class="btn btn-end" onclick="endGame()">🛑 End Game</button>
+</div>
+
+  <script src="quiz.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    requireLogin();
+    const userData = getCurrentUserData();
+    const PLAYER_NAME = userData ? userData.name : 'Host';
+
+    let socket = io();
+    const roomCode = sessionStorage.getItem('hostRoomCode');
+    let players = {};
+    let finishedPlayers = 0;
+    let totalPlayers = 0;
+
+    if (!roomCode) {
+      window.location.href = 'host.html';
+    }
+
+    document.getElementById('roomCode').textContent = roomCode;
+
+    // Reconnect as host
+    socket.emit('hostReconnect', { roomCode });
+
+    // Live scores update
+    socket.on('hostLiveScores', (data) => {
+      players = data.scores;
+      totalPlayers = Object.keys(players).length;
+      document.getElementById('totalPlayers').textContent = totalPlayers;
+      updateScoreboard();
+    });
+
+    // Player finished
+    socket.on('playerFinished', (data) => {
+      finishedPlayers = data.finishedCount;
+      document.getElementById('finishedCount').textContent = finishedPlayers;
+      const percent = totalPlayers > 0 ? (finishedPlayers / totalPlayers) * 100 : 0;
+      document.getElementById('progressFill').style.width = percent + '%';
+      
+      if (finishedPlayers >= totalPlayers && totalPlayers > 0) {
+        document.getElementById('statusBadge').textContent = '🏆 Game Complete!';
+        document.getElementById('statusBadge').className = 'status-badge status-finished';
+      }
+    });
+
+    function updateScoreboard() {
+      const list = document.getElementById('scoreboardList');
+      const sorted = Object.values(players).sort((a, b) => b.score - a.score);
+      const medals = ['🥇', '🥈', '🥉'];
+      
+      if (sorted.length === 0) {
+        list.innerHTML = '<p class="empty-msg">Waiting for scores...</p>';
+        return;
+      }
+
+      list.innerHTML = sorted.map((p, i) => `
+        <div class="player-row ${i === 0 ? 'first' : i === 1 ? 'second' : i === 2 ? 'third' : ''}">
+          <div class="player-left">
+            <span class="player-rank">${medals[i] || (i + 1)}</span>
+            <span class="player-avatar">${p.avatar}</span>
+            <span class="player-name">${p.name}</span>
+          </div>
+          <div class="player-right">
+            <div class="player-score">${p.score} pts</div>
+            <div class="player-correct">${p.correct || 0} correct</div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function endGame() {
+      if (confirm('Are you sure you want to end the game?')) {
+        socket.emit('hostEndGame', { roomCode });
+        sessionStorage.removeItem('hostRoomCode');
+        sessionStorage.removeItem('isHost');
+        window.location.href = 'dashboard.html';
+      }
+    }
+
+    // Game ended by all players finishing
+    socket.on('hostGameComplete', () => {
+      document.getElementById('statusBadge').textContent = '🏆 Game Complete!';
+      document.getElementById('statusBadge').className = 'status-badge status-finished';
+    });
+  </script>
+</body>
+</html>
+

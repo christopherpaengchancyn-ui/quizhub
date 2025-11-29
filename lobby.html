@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Game Lobby - QuizHub</title>
+  <style>
+body{font-family:Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;justify-content:center;align-items:center;padding:40px 20px;margin:0;min-height:100vh;box-sizing:border-box;}
+.card{background:#24201c;padding:30px;border-radius:14px;width:550px;max-width:100%;box-shadow:0 6px 30px rgba(2,2,2,0.6);text-align:center;}
+h2{color:#d9b78a;margin-bottom:20px;}
+.room-box{background:linear-gradient(135deg,#3a3632,#24201c);padding:25px;border-radius:12px;margin-bottom:20px;border:1px solid rgba(255,255,255,0.05);}
+.room-label{color:rgba(255,255,255,0.4);font-size:11px;text-transform:uppercase;letter-spacing:1px;}
+.room-code{font-size:36px;font-weight:bold;color:#d9b78a;letter-spacing:6px;font-family:monospace;margin:8px 0;}
+.host-info{display:flex;align-items:center;justify-content:center;gap:8px;color:rgba(255,255,255,0.6);font-size:14px;margin-top:12px;padding-top:12px;border-top:1px solid rgba(255,255,255,0.05);}
+.host-avatar{font-size:24px;}
+.question-badge{background:rgba(182,139,90,0.15);padding:8px 18px;border-radius:20px;display:inline-block;margin:15px 0;color:#d9b78a;font-size:13px;}
+.section-title{color:#b68b5a;font-size:12px;margin:20px 0 12px 0;text-transform:uppercase;letter-spacing:1px;}
+.players-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(100px, 1fr));gap:12px;margin:15px 0;}
+.player-card{background:rgba(255,255,255,0.03);padding:15px 10px;border-radius:10px;text-align:center;transition:all 0.2s;}
+.player-card .avatar{font-size:32px;display:block;margin-bottom:6px;}
+.player-card .name{color:#cfc5b8;font-size:12px;}
+.player-card.you{background:rgba(182,139,90,0.1);border:1px solid rgba(182,139,90,0.3);}
+.waiting-box{margin:25px 0;}
+.waiting-text{color:rgba(255,255,255,0.5);font-size:15px;}
+.dots span{animation:blink 1.4s infinite both;color:#d9b78a;}
+.dots span:nth-child(2){animation-delay:0.2s;}
+.dots span:nth-child(3){animation-delay:0.4s;}
+@keyframes blink{0%,80%,100%{opacity:0;}40%{opacity:1;}}
+.btn{width:100%;padding:12px;border-radius:10px;border:none;background:#3a3632;color:#cfc5b8;font-weight:600;cursor:pointer;transition:all 0.2s;margin-top:10px;}
+.btn:hover{background:#4a4642;}
+.btn-leave{background:rgba(255,100,100,0.15);color:#ff6b6b;}
+.btn-leave:hover{background:rgba(255,100,100,0.25);}
+  </style>
+</head>
+<body>
+<div class="card">
+  <h2>🎮 Game Lobby</h2>
+
+  <div class="room-box">
+    <div class="room-label">Room Code</div>
+    <div class="room-code" id="roomCode">------</div>
+    <div class="host-info">
+      <span>Hosted by</span>
+      <span class="host-avatar" id="hostAvatar">👤</span>
+      <span id="hostName">Loading...</span>
+    </div>
+  </div>
+
+  <div class="question-badge">📝 <span id="questionCount">0</span> Questions Ready</div>
+
+  <div class="section-title">👥 Players (<span id="playerCount">0</span>)</div>
+  <div class="players-grid" id="playersGrid"></div>
+
+  <div class="waiting-box">
+    <p class="waiting-text">
+      Waiting for host to start<span class="dots"><span>.</span><span>.</span><span>.</span></span>
+    </p>
+  </div>
+
+  <button class="btn btn-leave" onclick="leaveRoom()">🚪 Leave Room</button>
+</div>
+
+  <script src="quiz.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    requireLogin();
+    const userData = getCurrentUserData();
+    const PLAYER_NAME = userData ? userData.name : 'Player';
+    const PLAYER_AVATAR = userData ? (userData.avatar || '😀') : '😀';
+
+    let socket = io();
+    const roomCode = sessionStorage.getItem('hostRoomCode');
+
+    if (!roomCode) {
+      window.location.href = 'join.html';
+    }
+
+    document.getElementById('roomCode').textContent = roomCode;
+
+    // Rejoin room (in case of page refresh)
+    socket.emit('rejoinHostRoom', {
+      roomCode: roomCode,
+      playerName: PLAYER_NAME,
+      playerAvatar: PLAYER_AVATAR
+    });
+
+    // Room info received
+    socket.on('hostRoomInfo', (data) => {
+      document.getElementById('hostName').textContent = data.hostName;
+      document.getElementById('hostAvatar').textContent = data.hostAvatar;
+      document.getElementById('questionCount').textContent = data.questionCount;
+      updatePlayersList(data.players);
+    });
+
+    // Player joined/left
+    socket.on('playerJoinedHostRoom', (data) => {
+      updatePlayersList(data.players);
+    });
+
+    socket.on('playerLeftHostRoom', (data) => {
+      updatePlayersList(data.players);
+    });
+
+    // Questions updated
+    socket.on('hostQuestionsUpdated', (data) => {
+      document.getElementById('questionCount').textContent = data.questionCount;
+    });
+
+    function updatePlayersList(players) {
+      document.getElementById('playerCount').textContent = players.length;
+      const grid = document.getElementById('playersGrid');
+      grid.innerHTML = players.map(p => `
+        <div class="player-card ${p.name === PLAYER_NAME ? 'you' : ''}">
+          <div class="avatar">${p.avatar}</div>
+          <div class="name">${p.name}${p.name === PLAYER_NAME ? ' (You)' : ''}</div>
+        </div>
+      `).join('');
+    }
+
+    // Game started
+    socket.on('hostGameStarted', (data) => {
+      sessionStorage.setItem('hostGameQuestions', JSON.stringify(data.questions));
+      window.location.href = 'quiz-host.html';
+    });
+
+    // Host left
+    socket.on('hostLeft', () => {
+      alert('The host has left the room.');
+      window.location.href = 'dashboard.html';
+    });
+
+    function leaveRoom() {
+      socket.emit('leaveHostRoom', { roomCode });
+      sessionStorage.removeItem('hostRoomCode');
+      window.location.href = 'dashboard.html';
+    }
+
+    // Handle page unload
+    window.addEventListener('beforeunload', () => {
+      socket.emit('leaveHostRoom', { roomCode });
+    });
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Host a Game - QuizHub</title>
+  <style>
+*{box-sizing:border-box;}
+body{font-family:Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;justify-content:center;align-items:flex-start;padding:20px 15px;margin:0;min-height:100vh;}
+.card{background:#24201c;padding:25px;border-radius:14px;width:100%;max-width:700px;box-shadow:0 6px 30px rgba(2,2,2,0.6);}
+@media(max-width:600px){.card{padding:15px;}.room-code{font-size:28px!important;letter-spacing:5px!important;}.question-builder{padding:15px;}.choice-row{flex-wrap:wrap;}.choice-field{min-width:100%!important;margin-top:5px;}.correct-label{width:auto;}.players-grid{grid-template-columns:repeat(2,1fr)!important;}}
+h2{color:#d9b78a;margin-bottom:15px;text-align:center;}
+.room-code-display{background:linear-gradient(135deg,#3a3632,#24201c);padding:25px;border-radius:12px;text-align:center;margin-bottom:20px;border:1px solid rgba(255,255,255,0.05);}
+.room-code-label{color:rgba(255,255,255,0.5);font-size:12px;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;}
+.room-code{font-size:42px;font-weight:bold;color:#d9b78a;letter-spacing:8px;font-family:monospace;}
+.copy-btn{background:rgba(255,255,255,0.05);border:none;padding:8px 16px;border-radius:8px;cursor:pointer;color:#cfc5b8;margin-top:10px;transition:all 0.2s;}
+.copy-btn:hover{background:rgba(255,255,255,0.1);}
+.section-title{color:#b68b5a;font-size:12px;margin:20px 0 10px 0;text-transform:uppercase;letter-spacing:1px;}
+.question-builder{background:rgba(255,255,255,0.02);padding:18px;border-radius:10px;margin-bottom:15px;}
+.question-input{width:100%;padding:12px;margin:6px 0;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:rgba(255,255,255,0.015);color:#cfc5b8;font-size:14px;box-sizing:border-box;}
+.question-input:focus{outline:none;border-color:rgba(182,139,90,0.3);}
+.choices-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0;}
+.hint{color:rgba(255,255,255,0.4);font-size:11px;margin-top:5px;}
+.btn{width:100%;padding:12px;margin:6px 0;border-radius:10px;border:none;background:linear-gradient(90deg,#b68b5a,#d9b78a);color:#fff;font-weight:600;cursor:pointer;transition:transform 0.2s;}
+.btn:hover{transform:scale(1.02);}
+.btn-add{background:linear-gradient(90deg,#5a8bb6,#8ad9d9);}
+.question-list{max-height:200px;overflow-y:auto;margin:10px 0;}
+.question-item{display:flex;align-items:center;padding:10px;background:rgba(255,255,255,0.03);border-radius:8px;margin-bottom:6px;}
+.q-num{background:rgba(182,139,90,0.2);padding:4px 10px;border-radius:15px;margin-right:10px;color:#d9b78a;font-size:12px;font-weight:600;}
+.q-text{flex:1;font-size:13px;color:#cfc5b8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.delete-btn{background:rgba(255,100,100,0.2);border:none;padding:6px 10px;border-radius:6px;cursor:pointer;color:#ff6b6b;font-size:12px;transition:all 0.2s;}
+.delete-btn:hover{background:rgba(255,100,100,0.4);}
+.players-section{background:rgba(255,255,255,0.02);padding:15px;border-radius:10px;margin:15px 0;}
+.players-grid{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;}
+.player-chip{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.05);padding:6px 12px;border-radius:20px;}
+.player-chip .avatar{font-size:18px;}
+.player-chip .name{font-size:13px;}
+.empty-msg{color:rgba(255,255,255,0.4);font-size:13px;text-align:center;padding:15px;}
+.status-bar{display:flex;align-items:center;justify-content:center;gap:15px;margin:20px 0;}
+.status-badge{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;}
+.status-waiting{background:rgba(255,215,0,0.2);color:#ffd700;}
+.status-ready{background:rgba(74,222,128,0.2);color:#4ade80;}
+.btn-start{background:linear-gradient(90deg,#4ade80,#22c55e);font-size:16px;padding:14px;}
+.btn-start:disabled{background:#3a3632;color:rgba(255,255,255,0.3);cursor:not-allowed;transform:none;}
+.warning-text{color:#ff6b6b;font-size:12px;text-align:center;margin-top:8px;}
+.back-link{color:#b68b5a;text-decoration:none;font-size:13px;display:inline-block;margin-bottom:15px;}
+.back-link:hover{text-decoration:underline;}
+.choices-builder{display:flex;flex-direction:column;gap:8px;margin:10px 0;}
+.choice-row{display:flex;align-items:center;gap:10px;}
+.choice-row input[type="radio"]{width:20px;height:20px;accent-color:#4ade80;cursor:pointer;flex-shrink:0;}
+.choice-field{flex:1;margin:0!important;}
+.correct-label{color:#4ade80;font-size:12px;font-weight:600;width:70px;text-align:center;}
+  </style>
+</head>
+<body>
+<div class="card">
+  <a href="dashboard.html" class="back-link">← Back to Dashboard</a>
+  <h2>🎮 Host a Game</h2>
+
+  <!-- Room Code Display -->
+  <div class="room-code-display">
+    <div class="room-code-label">Share this code with players</div>
+    <div class="room-code" id="roomCode">------</div>
+    <button class="copy-btn" onclick="copyRoomCode()">📋 Copy Code</button>
+  </div>
+
+  <!-- Question Builder -->
+  <div class="section-title">📝 Add Questions (<span id="questionCount">0</span>/20)</div>
+  <div class="question-builder">
+    <input type="text" class="question-input" id="questionText" placeholder="Enter your question...">
+
+    <p class="hint" style="margin:10px 0 5px;">Enter 4 choices and click to select the correct one:</p>
+    <div class="choices-builder">
+      <div class="choice-row">
+        <input type="radio" name="correctAnswer" id="radio1" value="1" checked>
+        <input type="text" class="question-input choice-field" id="choice1" placeholder="Choice 1">
+        <span class="correct-label" id="label1">✓ Correct</span>
+      </div>
+      <div class="choice-row">
+        <input type="radio" name="correctAnswer" id="radio2" value="2">
+        <input type="text" class="question-input choice-field" id="choice2" placeholder="Choice 2">
+        <span class="correct-label" id="label2"></span>
+      </div>
+      <div class="choice-row">
+        <input type="radio" name="correctAnswer" id="radio3" value="3">
+        <input type="text" class="question-input choice-field" id="choice3" placeholder="Choice 3">
+        <span class="correct-label" id="label3"></span>
+      </div>
+      <div class="choice-row">
+        <input type="radio" name="correctAnswer" id="radio4" value="4">
+        <input type="text" class="question-input choice-field" id="choice4" placeholder="Choice 4">
+        <span class="correct-label" id="label4"></span>
+      </div>
+    </div>
+
+    <button type="button" class="btn btn-add" id="addQuestionBtn">➕ Add Question</button>
+  </div>
+
+  <!-- Question List -->
+  <div class="question-list" id="questionList">
+    <p class="empty-msg">No questions added yet</p>
+  </div>
+
+  <!-- Players Section -->
+  <div class="section-title">👥 Players Joined (<span id="playerCount">0</span>)</div>
+  <div class="players-section">
+    <div class="players-grid" id="playersList">
+      <p class="empty-msg" style="width:100%;">Waiting for players to join...</p>
+    </div>
+  </div>
+
+  <!-- Status & Start -->
+  <div class="status-bar">
+    <span class="status-badge status-waiting" id="statusBadge">⏳ Waiting for players...</span>
+  </div>
+  <button class="btn btn-start" id="startBtn" onclick="startGame()" disabled>🚀 Start Game</button>
+  <p class="warning-text" id="minWarning">Add at least 5 questions to start</p>
+</div>
+
+  <script src="quiz.js"></script>
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    // Check login
+    if (!requireLogin()) {
+      // Redirect handled by requireLogin
+    }
+
+    // Get user data safely
+    let PLAYER_NAME = 'Host';
+    let PLAYER_AVATAR = '😀';
+    try {
+      const userData = getCurrentUserData();
+      if (userData) {
+        PLAYER_NAME = userData.name || 'Host';
+        PLAYER_AVATAR = userData.avatar || '😀';
+      }
+    } catch(e) {
+      console.log('Error getting user data:', e);
+    }
+
+    let socket;
+    let roomCode = '';
+    let questions = [];
+    let players = [];
+
+    // Generate room code
+    function generateRoomCode() {
+      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+      let code = '';
+      for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
+      return code;
+    }
+
+    // Initialize when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('Page loaded, initializing...');
+
+      // Generate and show room code
+      roomCode = generateRoomCode();
+      document.getElementById('roomCode').textContent = roomCode;
+      console.log('Room code generated:', roomCode);
+
+      // Connect socket
+      try {
+        socket = io();
+        socket.emit('createHostRoom', {
+          roomCode: roomCode,
+          hostName: PLAYER_NAME,
+          hostAvatar: PLAYER_AVATAR
+        });
+        console.log('Socket connected');
+      } catch(e) {
+        console.log('Socket error:', e);
+      }
+
+      // Setup radio button listeners
+      document.querySelectorAll('input[name="correctAnswer"]').forEach(radio => {
+        radio.addEventListener('change', updateCorrectLabels);
+      });
+
+      // Setup add question button
+      document.getElementById('addQuestionBtn').addEventListener('click', addQuestion);
+    });
+
+    // Copy room code
+    function copyRoomCode() {
+      navigator.clipboard.writeText(roomCode);
+      alert('Room code copied: ' + roomCode);
+    }
+
+    function updateCorrectLabels() {
+      for (let i = 1; i <= 4; i++) {
+        const label = document.getElementById('label' + i);
+        const radio = document.getElementById('radio' + i);
+        if (label && radio) {
+          label.textContent = radio.checked ? '✓ Correct' : '';
+        }
+      }
+    }
+
+    // Add question function
+    function addQuestion() {
+      console.log('Add question clicked');
+
+      if (questions.length >= 20) {
+        alert('Maximum 20 questions allowed!');
+        return;
+      }
+
+      const qText = document.getElementById('questionText').value.trim();
+      const c1 = document.getElementById('choice1').value.trim();
+      const c2 = document.getElementById('choice2').value.trim();
+      const c3 = document.getElementById('choice3').value.trim();
+      const c4 = document.getElementById('choice4').value.trim();
+
+      console.log('Question:', qText);
+      console.log('Choices:', c1, c2, c3, c4);
+
+      if (!qText || !c1 || !c2 || !c3 || !c4) {
+        alert('Please fill in all fields!');
+        return;
+      }
+
+      // Get which choice is correct from radio buttons
+      const selectedRadio = document.querySelector('input[name="correctAnswer"]:checked');
+      const correctIndex = parseInt(selectedRadio.value);
+      const choices = [c1, c2, c3, c4];
+      const correctAnswer = choices[correctIndex - 1];
+
+      console.log('Correct answer:', correctAnswer);
+
+      questions.push({ q: qText, a: correctAnswer, choices: choices });
+      updateQuestionList();
+      clearInputs();
+
+      if (socket && socket.connected) {
+        socket.emit('updateHostQuestions', { roomCode, questions });
+      }
+
+      alert('Question added! Total: ' + questions.length);
+    }
+
+    function clearInputs() {
+      document.getElementById('questionText').value = '';
+      document.getElementById('choice1').value = '';
+      document.getElementById('choice2').value = '';
+      document.getElementById('choice3').value = '';
+      document.getElementById('choice4').value = '';
+      document.getElementById('radio1').checked = true;
+      updateCorrectLabels();
+    }
+
+    function updateQuestionList() {
+      const list = document.getElementById('questionList');
+      document.getElementById('questionCount').textContent = questions.length;
+      if (questions.length === 0) {
+        list.innerHTML = '<p class="empty-msg">No questions added yet</p>';
+      } else {
+        list.innerHTML = questions.map((q, i) => `
+          <div class="question-item">
+            <span class="q-num">${i + 1}</span>
+            <span class="q-text" title="Answer: ${q.a}">${q.q} <small style="color:#4ade80;">✓ ${q.a}</small></span>
+            <button class="delete-btn" onclick="deleteQuestion(${i})">🗑️</button>
+          </div>
+        `).join('');
+      }
+      checkStartConditions();
+    }
+
+    function deleteQuestion(idx) {
+      questions.splice(idx, 1);
+      updateQuestionList();
+      socket.emit('updateHostQuestions', { roomCode, questions });
+    }
+
+    // Check if can start
+    function checkStartConditions() {
+      const canStart = questions.length >= 5 && players.length >= 1;
+      document.getElementById('startBtn').disabled = !canStart;
+      document.getElementById('minWarning').style.display = questions.length >= 5 ? 'none' : 'block';
+
+      if (players.length >= 1 && questions.length >= 5) {
+        document.getElementById('statusBadge').textContent = 'Ready to start!';
+        document.getElementById('statusBadge').className = 'status-badge status-ready';
+      } else {
+        document.getElementById('statusBadge').textContent = 'Waiting for players...';
+        document.getElementById('statusBadge').className = 'status-badge status-waiting';
+      }
+    }
+
+    // Player joined
+    socket.on('playerJoinedHostRoom', (data) => {
+      players = data.players;
+      updatePlayersList();
+      checkStartConditions();
+    });
+
+    // Player left
+    socket.on('playerLeftHostRoom', (data) => {
+      players = data.players;
+      updatePlayersList();
+      checkStartConditions();
+    });
+
+    function updatePlayersList() {
+      const list = document.getElementById('playersList');
+      document.getElementById('playerCount').textContent = players.length;
+      if (players.length === 0) {
+        list.innerHTML = '<p class="empty-msg" style="width:100%;">Waiting for players to join...</p>';
+      } else {
+        list.innerHTML = players.map(p => `
+          <div class="player-chip">
+            <span class="avatar">${p.avatar}</span>
+            <span class="name">${p.name}</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    // Start game
+    function startGame() {
+      if (questions.length < 5) { alert('Add at least 5 questions!'); return; }
+      if (players.length < 1) { alert('Wait for at least 1 player to join!'); return; }
+
+      socket.emit('startHostGame', { roomCode, questions });
+    }
+
+    // Game started - redirect to host view
+    socket.on('hostGameStarted', (data) => {
+      sessionStorage.setItem('hostRoomCode', roomCode);
+      sessionStorage.setItem('isHost', 'true');
+      window.location.href = 'host-game.html';
+    });
+  </script>
+</body>
+</html>
+

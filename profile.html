@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Profile - QuizHub</title>
+<style>
+*{box-sizing:border-box;}
+body{font-family:Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;padding:15px;}
+.card{background:#24201c;padding:30px;border-radius:14px;width:100%;max-width:450px;text-align:center;box-shadow:0 6px 30px rgba(2,2,2,0.6);}
+@media(max-width:480px){.card{padding:20px;}.current-avatar{font-size:60px!important;}.stats-grid{grid-template-columns:repeat(2,1fr)!important;}.avatar-option{font-size:24px!important;padding:6px!important;}}
+h2{color:#d9b78a;margin:10px 0;}
+.avatar-section{margin:20px 0;}
+.current-avatar{font-size:80px;cursor:pointer;transition:transform 0.2s;}
+.current-avatar:hover{transform:scale(1.1);}
+.avatar-grid{display:none;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:15px;padding:15px;background:rgba(255,255,255,0.03);border-radius:10px;}
+.avatar-grid.show{display:flex;}
+.avatar-option{font-size:28px;padding:8px;border-radius:10px;cursor:pointer;background:transparent;border:2px solid transparent;transition:all 0.2s;}
+.avatar-option:hover{background:rgba(255,255,255,0.1);}
+.avatar-option.selected{border-color:#d9b78a;background:rgba(217,183,138,0.2);}
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:20px 0;}
+.stat-box{background:rgba(255,255,255,0.03);padding:15px;border-radius:10px;}
+.stat-value{font-size:28px;color:#d9b78a;font-weight:bold;}
+.stat-label{font-size:12px;color:rgba(255,255,255,0.5);text-transform:uppercase;margin-top:5px;}
+.section-title{color:#b68b5a;font-size:12px;margin:20px 0 10px 0;text-transform:uppercase;letter-spacing:1px;}
+.info-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);}
+.info-label{color:rgba(255,255,255,0.5);}
+.info-value{color:#cfc5b8;}
+.btn{width:100%;padding:12px;margin-top:10px;border-radius:10px;border:none;background:linear-gradient(90deg,#b68b5a,#d9b78a);color:#fff;font-weight:600;cursor:pointer;transition:transform 0.2s;}
+.btn:hover{transform:scale(1.02);}
+.btn-secondary{background:#3a3632;}
+.edit-hint{font-size:12px;color:rgba(255,255,255,0.4);margin-top:5px;}
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="avatar-section">
+    <div class="current-avatar" id="currentAvatar" onclick="toggleAvatarGrid()" title="Click to change avatar">😎</div>
+    <div class="edit-hint">Click avatar to change</div>
+    <div class="avatar-grid" id="avatarGrid"></div>
+  </div>
+  
+  <h2 id="userName">Player Name</h2>
+  <p style="color:rgba(255,255,255,0.5);margin:0;" id="userEmail">email@example.com</p>
+  
+  <div class="section-title">📊 Your Stats</div>
+  <div class="stats-grid">
+    <div class="stat-box"><div class="stat-value" id="statGames">0</div><div class="stat-label">Games Played</div></div>
+    <div class="stat-box"><div class="stat-value" id="statWins">0</div><div class="stat-label">Perfect Scores</div></div>
+    <div class="stat-box"><div class="stat-value" id="statStreak">0</div><div class="stat-label">Best Streak</div></div>
+    <div class="stat-box"><div class="stat-value" id="statScore">0</div><div class="stat-label">Total Points</div></div>
+  </div>
+  
+  <div class="section-title">📋 Account Info</div>
+  <div class="info-row"><span class="info-label">Member Since</span><span class="info-value" id="memberSince">-</span></div>
+  <div class="info-row"><span class="info-label">Avg Score</span><span class="info-value" id="avgScore">-</span></div>
+  
+  <button class="btn" onclick="window.location.href='dashboard.html'">← Back to Dashboard</button>
+  <button class="btn btn-secondary" onclick="resetStats()">🔄 Reset Stats</button>
+</div>
+
+<script src="quiz.js"></script>
+<script>
+requireLogin();
+
+const userData = getCurrentUserData();
+const userEmail = localStorage.getItem('sn_current');
+
+// Display user info
+document.getElementById('userName').innerText = userData ? userData.name : 'Player';
+document.getElementById('userEmail').innerText = userEmail || '';
+document.getElementById('currentAvatar').innerText = userData ? userData.avatar : '😎';
+
+// Display stats
+if(userData && userData.stats){
+  document.getElementById('statGames').innerText = userData.stats.gamesPlayed || 0;
+  document.getElementById('statWins').innerText = userData.stats.wins || 0;
+  document.getElementById('statStreak').innerText = userData.stats.bestStreak || 0;
+  document.getElementById('statScore').innerText = userData.stats.totalScore || 0;
+  
+  // Calculate average
+  const games = userData.stats.gamesPlayed || 0;
+  const total = userData.stats.totalScore || 0;
+  document.getElementById('avgScore').innerText = games > 0 ? Math.round(total / games) + ' pts' : '-';
+}
+
+// Member since
+document.getElementById('memberSince').innerText = userData && userData.joinDate ? userData.joinDate : 'Unknown';
+
+// Avatar grid
+const avatarGrid = document.getElementById('avatarGrid');
+AVATARS.forEach(avatar => {
+  const btn = document.createElement('span');
+  btn.className = 'avatar-option' + (avatar === (userData ? userData.avatar : '😎') ? ' selected' : '');
+  btn.innerText = avatar;
+  btn.onclick = () => changeAvatar(avatar);
+  avatarGrid.appendChild(btn);
+});
+
+function toggleAvatarGrid(){
+  avatarGrid.classList.toggle('show');
+}
+
+function changeAvatar(avatar){
+  updateAvatar(avatar);
+  document.getElementById('currentAvatar').innerText = avatar;
+  document.querySelectorAll('.avatar-option').forEach(el => {
+    el.classList.toggle('selected', el.innerText === avatar);
+  });
+  avatarGrid.classList.remove('show');
+}
+
+function resetStats(){
+  if(confirm('Are you sure you want to reset all your stats? This cannot be undone.')){
+    const accounts = JSON.parse(localStorage.getItem('sn_accounts') || '{}');
+    if(accounts[userEmail]){
+      accounts[userEmail].stats = { gamesPlayed: 0, wins: 0, bestStreak: 0, totalScore: 0 };
+      localStorage.setItem('sn_accounts', JSON.stringify(accounts));
+      location.reload();
+    }
+  }
+}
+</script>
+</body>
+</html>
+

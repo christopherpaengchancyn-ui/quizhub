@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Quiz - QuizHub</title>
+<style>
+*{box-sizing:border-box;}
+body{font-family:Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;padding:15px;}
+.card{background:#24201c;padding:30px;border-radius:14px;width:100%;max-width:650px;box-shadow:0 6px 30px rgba(2,2,2,0.6);}
+@media(max-width:600px){.card{padding:20px;}.header{flex-direction:column;align-items:flex-start;}.options-grid{grid-template-columns:1fr!important;}.question{font-size:18px!important;}h2{font-size:18px;}.stats-row{flex-wrap:wrap;}.stat-item{min-width:60px;}}
+h2{color:#d9b78a;margin-bottom:15px;}
+.header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;flex-wrap:wrap;gap:10px;}
+.mode-badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;}
+.mode-classic{background:linear-gradient(90deg,#5a8bb6,#8ad9d9);}
+.mode-survival{background:linear-gradient(90deg,#ff6b6b,#ff8e8e);}
+.mode-speed{background:linear-gradient(90deg,#f7df1e,#ffeb3b);}
+.cat-badge{background:rgba(255,255,255,0.1);padding:4px 10px;border-radius:20px;font-size:12px;}
+.stats-bar{display:flex;gap:15px;margin-bottom:15px;flex-wrap:wrap;}
+.stat{background:rgba(255,255,255,0.05);padding:8px 12px;border-radius:8px;font-size:12px;}
+.stat-value{color:#d9b78a;font-weight:bold;}
+.streak-fire{color:#ff6b6b;animation:pulse 0.5s ease-in-out;}
+@keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.2);}}
+.answers{display:flex;flex-direction:column;gap:10px;margin-bottom:12px;}
+.choice{padding:14px;border-radius:10px;border:2px solid rgba(255,255,255,0.05);background:transparent;color:#cfc5b8;cursor:pointer;text-align:left;transition:all 0.2s;font-size:15px;}
+.choice:hover{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.1);}
+.muted{color:rgba(255,255,255,0.5);}
+.timer-bar{height:8px;background:#3a3632;border-radius:4px;margin-bottom:15px;overflow:hidden;}
+.timer-fill{height:100%;background:linear-gradient(90deg,#5a8bb6,#8ad9d9);border-radius:4px;transition:width 0.1s linear;}
+.timer-danger{background:linear-gradient(90deg,#ff6b6b,#ff8e8e)!important;}
+.progress-bar{height:4px;background:#3a3632;border-radius:2px;margin-bottom:10px;}
+.progress-fill{height:100%;background:#d9b78a;border-radius:2px;transition:width 0.3s;}
+.resultItem{margin-bottom:10px;padding:12px;background:rgba(255,0,0,0.1);border-radius:8px;text-align:left;}
+.btn{padding:12px 16px;border-radius:10px;border:none;background:linear-gradient(90deg,#5a8bb6,#8ad9d9);color:#fff;cursor:pointer;font-weight:600;margin:5px;transition:transform 0.2s;}
+.btn:hover{transform:scale(1.02);}
+.score-display{font-size:28px;color:#8ad9d9;margin:15px 0;}
+.points-popup{position:fixed;font-size:24px;font-weight:bold;color:#4ade80;animation:floatUp 1s ease-out forwards;pointer-events:none;}
+@keyframes floatUp{0%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-50px);}}
+.game-over{text-align:center;}
+.game-over h2{color:#ff6b6b;}
+.final-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:20px 0;}
+.final-stat{background:rgba(255,255,255,0.05);padding:15px;border-radius:10px;}
+.final-stat-value{font-size:24px;color:#d9b78a;font-weight:bold;}
+.final-stat-label{font-size:12px;color:rgba(255,255,255,0.5);}
+</style>
+</head>
+<body>
+<div class="card">
+  <!-- Quiz Screen -->
+  <div id="quizScreen">
+    <div class="header">
+      <div>
+        <span class="mode-badge mode-classic" id="modeBadge">🎮 Classic</span>
+        <span class="cat-badge" id="catBadge">📚 Category</span>
+      </div>
+      <div class="stat">Q: <span id="qNum">1</span>/<span id="qTotal">10</span></div>
+    </div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+    <div class="stats-bar">
+      <div class="stat">🏆 Points: <span class="stat-value" id="pointsDisplay">0</span></div>
+      <div class="stat">🔥 Streak: <span class="stat-value" id="streakDisplay">0</span></div>
+      <div class="stat">⏱️ <span id="timerText">30s</span></div>
+    </div>
+    <div class="timer-bar"><div class="timer-fill" id="timerFill" style="width:100%"></div></div>
+    <h2 id="qTitle">Loading question...</h2>
+    <div class="answers" id="answers"></div>
+  </div>
+
+  <!-- Game Over Screen (Survival) -->
+  <div id="gameOverScreen" style="display:none;" class="game-over">
+    <h2>💀 Game Over!</h2>
+    <p class="muted">You answered incorrectly in Survival mode</p>
+    <div class="final-stats">
+      <div class="final-stat"><div class="final-stat-value" id="goQuestions">0</div><div class="final-stat-label">Questions Answered</div></div>
+      <div class="final-stat"><div class="final-stat-value" id="goPoints">0</div><div class="final-stat-label">Points Earned</div></div>
+      <div class="final-stat"><div class="final-stat-value" id="goStreak">0</div><div class="final-stat-label">Best Streak</div></div>
+      <div class="final-stat"><div class="final-stat-value" id="goAccuracy">0%</div><div class="final-stat-label">Accuracy</div></div>
+    </div>
+    <button class="btn" onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
+    <button class="btn" onclick="location.reload()">Try Again</button>
+  </div>
+
+  <!-- Result Screen -->
+  <div id="resultScreen" style="display:none;">
+    <h2>🎉 Quiz Complete!</h2>
+    <div class="final-stats">
+      <div class="final-stat"><div class="final-stat-value" id="finalPoints">0</div><div class="final-stat-label">Total Points</div></div>
+      <div class="final-stat"><div class="final-stat-value" id="finalCorrect">0/0</div><div class="final-stat-label">Correct Answers</div></div>
+      <div class="final-stat"><div class="final-stat-value" id="finalStreak">0</div><div class="final-stat-label">Best Streak</div></div>
+      <div class="final-stat"><div class="final-stat-value" id="finalAccuracy">0%</div><div class="final-stat-label">Accuracy</div></div>
+    </div>
+    <div id="wrongList"></div>
+    <button class="btn" onclick="window.location.href='dashboard.html'">Back to Dashboard</button>
+    <button class="btn" onclick="location.reload()">Play Again</button>
+  </div>
+</div>
+
+<script src="quiz.js"></script>
+<script>
+// ----------------- Configuration -----------------
+const TIME_LIMIT = 30;
+
+// ----------------- User Data -----------------
+const userData = getCurrentUserData();
+const PLAYER_NAME = userData ? userData.name : 'Player';
+const PLAYER_AVATAR = userData ? (userData.avatar || '😀') : '😀';
+
+// ----------------- Quiz State -----------------
+let category = sessionStorage.getItem('quizCategory') || 'HTML_CSS';
+let gameMode = sessionStorage.getItem('gameMode') || 'classic';
+let qsList = [];
+let index = 0, totalPoints = 0, correctCount = 0, currentStreak = 0, bestStreak = 0;
+let wrongQuestions = [], timerInterval, questionStartTime;
+
+// ----------------- Initialize UI -----------------
+function initUI() {
+  const catInfo = CATEGORIES[category] || { name: category, icon: '📚' };
+  const modeInfo = GAME_MODES[gameMode] || GAME_MODES.classic;
+
+  document.getElementById('catBadge').innerHTML = `${catInfo.icon} ${catInfo.name}`;
+  document.getElementById('modeBadge').innerHTML = `${modeInfo.icon} ${modeInfo.name}`;
+  document.getElementById('modeBadge').className = `mode-badge mode-${gameMode}`;
+}
+
+// ----------------- Initialize Questions -----------------
+const QUESTIONS_PER_GAME = 10; // Pick 10 random questions from 50
+
+function initQuestions() {
+  const allQuestions = QUESTIONS[category] || QUESTIONS['HTML_CSS'];
+  // Shuffle all questions and pick first 10
+  const shuffled = shuffle(allQuestions.slice());
+  qsList = shuffled.slice(0, QUESTIONS_PER_GAME);
+  document.getElementById('qTotal').innerText = qsList.length;
+}
+
+// ----------------- Helpers -----------------
+function shuffle(arr) { return arr.slice().sort(() => Math.random() - 0.5); }
+
+// ----------------- Timer -----------------
+function startTimer() {
+  clearInterval(timerInterval);
+  let timeLeft = TIME_LIMIT;
+  questionStartTime = Date.now();
+  updateTimerDisplay(timeLeft);
+
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerDisplay(timeLeft);
+    if (timeLeft <= 0) {
+      clearInterval(timerInterval);
+      handleAnswer(null);
+    }
+  }, 1000);
+}
+
+function updateTimerDisplay(timeLeft) {
+  const percent = (timeLeft / TIME_LIMIT) * 100;
+  document.getElementById('timerText').innerText = `${timeLeft}s`;
+  document.getElementById('timerFill').style.width = percent + '%';
+  document.getElementById('timerFill').classList.toggle('timer-danger', timeLeft <= 5);
+}
+
+// ----------------- Update Stats Display -----------------
+function updateStatsDisplay() {
+  document.getElementById('pointsDisplay').innerText = totalPoints;
+  document.getElementById('streakDisplay').innerText = currentStreak;
+  document.getElementById('qNum').innerText = index + 1;
+  const percent = (index / qsList.length) * 100;
+  document.getElementById('progressFill').style.width = percent + '%';
+}
+
+// ----------------- Show Points Popup -----------------
+function showPointsPopup(points, x, y) {
+  const popup = document.createElement('div');
+  popup.className = 'points-popup';
+  popup.innerText = `+${points}`;
+  popup.style.left = x + 'px';
+  popup.style.top = y + 'px';
+  document.body.appendChild(popup);
+  setTimeout(() => popup.remove(), 1000);
+}
+
+// ----------------- Render Question -----------------
+function renderQ() {
+  clearInterval(timerInterval);
+  updateStatsDisplay();
+  const q = qsList[index];
+  document.getElementById('qTitle').innerText = q.q;
+  const area = document.getElementById('answers');
+  area.innerHTML = '';
+
+  shuffle(q.choices).forEach(c => {
+    const btn = document.createElement('button');
+    btn.className = 'choice';
+    btn.innerText = c;
+    btn.onclick = (e) => {
+      Array.from(area.children).forEach(b => b.disabled = true);
+      handleAnswer(c, e);
+    };
+    area.appendChild(btn);
+  });
+
+  startTimer();
+}
+
+// ----------------- Handle Answer -----------------
+function handleAnswer(userAnswer, event) {
+  clearInterval(timerInterval);
+  const q = qsList[index];
+  const correct = userAnswer === q.a;
+  const timeTaken = (Date.now() - questionStartTime) / 1000;
+
+  // Highlight correct/wrong
+  const area = document.getElementById('answers');
+  Array.from(area.children).forEach(btn => {
+    if (btn.innerText === q.a) btn.style.background = 'rgba(0,255,0,0.3)';
+    else if (btn.innerText === userAnswer) btn.style.background = 'rgba(255,0,0,0.3)';
+  });
+
+  if (correct) {
+    correctCount++;
+    currentStreak++;
+    if (currentStreak > bestStreak) bestStreak = currentStreak;
+
+    // Calculate points
+    const points = calculatePoints(timeTaken, currentStreak, gameMode);
+    totalPoints += points;
+
+    // Show points popup
+    if (event) showPointsPopup(points, event.clientX, event.clientY - 30);
+
+    // Update streak display with animation
+    document.getElementById('streakDisplay').classList.add('streak-fire');
+    setTimeout(() => document.getElementById('streakDisplay').classList.remove('streak-fire'), 500);
+  } else {
+    currentStreak = 0;
+    wrongQuestions.push({ q: q.q, correct: q.a, your: userAnswer || "(Time's up)" });
+
+    // Survival mode - game over on wrong answer
+    if (gameMode === 'survival') {
+      setTimeout(gameOver, 600);
+      return;
+    }
+  }
+
+  updateStatsDisplay();
+  setTimeout(nextQuestion, 700);
+}
+
+// ----------------- Next Question -----------------
+function nextQuestion() {
+  index++;
+  if (index >= qsList.length) finishQuiz();
+  else renderQ();
+}
+
+// ----------------- Game Over (Survival) -----------------
+function gameOver() {
+  clearInterval(timerInterval);
+  document.getElementById('quizScreen').style.display = 'none';
+  document.getElementById('gameOverScreen').style.display = 'block';
+
+  document.getElementById('goQuestions').innerText = index;
+  document.getElementById('goPoints').innerText = totalPoints;
+  document.getElementById('goStreak').innerText = bestStreak;
+  document.getElementById('goAccuracy').innerText = index > 0 ? Math.round((correctCount / index) * 100) + '%' : '0%';
+
+  saveResults();
+}
+
+// ----------------- Save Results -----------------
+function saveResults() {
+  // Update user stats
+  updateUserStats({
+    gamesPlayed: 1,
+    wins: correctCount === qsList.length ? 1 : 0,
+    bestStreak: bestStreak,
+    totalScore: totalPoints
+  });
+
+  // Save to leaderboard (category + gameMode key)
+  let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || {};
+  const lbKey = `${category}_${gameMode}`;
+  if (!leaderboard[lbKey]) leaderboard[lbKey] = [];
+
+  const entry = {
+    name: PLAYER_NAME,
+    avatar: PLAYER_AVATAR,
+    score: totalPoints,
+    correct: correctCount,
+    total: qsList.length,
+    date: new Date().toLocaleString()
+  };
+  const existingIdx = leaderboard[lbKey].findIndex(e => e.name === PLAYER_NAME);
+
+  if (existingIdx !== -1) {
+    if (totalPoints > leaderboard[lbKey][existingIdx].score) {
+      leaderboard[lbKey][existingIdx] = entry;
+    }
+  } else {
+    leaderboard[lbKey].push(entry);
+  }
+
+  leaderboard[lbKey].sort((a, b) => b.score - a.score);
+  if (leaderboard[lbKey].length > 10) leaderboard[lbKey] = leaderboard[lbKey].slice(0, 10);
+  localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+}
+
+// ----------------- Finish Quiz -----------------
+function finishQuiz() {
+  clearInterval(timerInterval);
+  document.getElementById('quizScreen').style.display = 'none';
+  document.getElementById('resultScreen').style.display = 'block';
+
+  document.getElementById('finalPoints').innerText = totalPoints;
+  document.getElementById('finalCorrect').innerText = `${correctCount}/${qsList.length}`;
+  document.getElementById('finalStreak').innerText = bestStreak;
+  document.getElementById('finalAccuracy').innerText = Math.round((correctCount / qsList.length) * 100) + '%';
+
+  saveResults();
+
+  // Show wrong answers
+  if (wrongQuestions.length > 0) {
+    document.getElementById('wrongList').innerHTML = '<h3 style="color:#d9b78a;margin-top:20px;">📝 Questions to Review:</h3>' +
+      wrongQuestions.map(w => `<div class="resultItem"><strong>${w.q}</strong><br>Your answer: <span style="color:#ff6b6b">${w.your}</span><br>Correct: <span style="color:#4ade80">${w.correct}</span></div>`).join('');
+  } else {
+    document.getElementById('wrongList').innerHTML = '<p style="color:#4ade80;margin-top:20px;font-size:18px;">🎉 Perfect Score! All answers correct!</p>';
+  }
+}
+
+// ----------------- Start Quiz -----------------
+requireLogin();
+initUI();
+initQuestions();
+renderQ();
+</script>
+

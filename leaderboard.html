@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Leaderboard - QuizHub</title>
+<style>
+*{box-sizing:border-box;}
+body{font-family:Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;justify-content:center;align-items:flex-start;padding:20px 15px;margin:0;min-height:100vh;}
+.card{background:#24201c;padding:30px;border-radius:14px;width:100%;max-width:750px;box-shadow:0 6px 30px rgba(2,2,2,0.6);}
+@media(max-width:600px){.card{padding:20px;}.mode-tabs{flex-wrap:wrap;}.mode-tab{padding:8px 15px;font-size:12px;}.cat-tabs{gap:4px;}.cat-tab{padding:5px 10px;font-size:11px;}.entry{padding:10px;}.entry-score{font-size:16px;}}
+h2{color:#d9b78a;margin-bottom:15px;text-align:center;}
+.mode-tabs{display:flex;justify-content:center;gap:10px;margin-bottom:15px;}
+.mode-tab{padding:10px 20px;border-radius:10px;border:none;background:rgba(255,255,255,0.05);color:#cfc5b8;cursor:pointer;font-size:14px;font-weight:600;transition:all 0.2s;}
+.mode-tab:hover{background:rgba(255,255,255,0.1);}
+.mode-tab.active{background:linear-gradient(90deg,#b65a8b,#d98ad9);color:#fff;}
+.cat-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px;justify-content:center;}
+.cat-tab{padding:6px 12px;border-radius:15px;border:none;background:rgba(255,255,255,0.05);color:#cfc5b8;cursor:pointer;font-size:12px;transition:all 0.2s;}
+.cat-tab:hover{background:rgba(255,255,255,0.1);}
+.cat-tab.active{background:linear-gradient(90deg,#b68b5a,#d9b78a);color:#fff;}
+.category-header{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:15px;}
+.category-icon{font-size:24px;}
+.category-name{color:#d9b78a;font-size:18px;font-weight:600;}
+.mode-badge{font-size:12px;padding:4px 10px;border-radius:10px;background:rgba(182,90,139,0.3);color:#d98ad9;}
+.leaderboard-list{list-style:none;padding:0;margin:0;}
+.leaderboard-item{display:flex;align-items:center;padding:12px;background:rgba(255,255,255,0.03);border-radius:10px;margin-bottom:8px;transition:background 0.2s;}
+.leaderboard-item:hover{background:rgba(255,255,255,0.06);}
+.leaderboard-item.current-player{background:rgba(182,139,90,0.15);border:1px solid rgba(182,139,90,0.3);}
+.rank{width:35px;font-size:18px;font-weight:bold;color:#d9b78a;}
+.rank-1{color:#ffd700;}
+.rank-2{color:#c0c0c0;}
+.rank-3{color:#cd7f32;}
+.player-avatar{font-size:24px;margin-right:10px;}
+.player-info{flex:1;}
+.player-name{font-weight:600;}
+.player-date{font-size:11px;color:rgba(255,255,255,0.4);}
+.player-score{text-align:right;}
+.score-value{font-size:18px;font-weight:bold;color:#8ad9d9;}
+.score-detail{font-size:11px;color:rgba(255,255,255,0.4);}
+.no-scores{text-align:center;padding:30px;color:rgba(255,255,255,0.4);}
+.btn{width:100%;padding:12px;margin-top:15px;border-radius:10px;border:none;background:linear-gradient(90deg,#b68b5a,#d9b78a);color:#fff;cursor:pointer;font-weight:600;transition:transform 0.2s;}
+.btn:hover{transform:scale(1.02);}
+</style>
+</head>
+<body>
+<div class="card">
+  <h2>🏆 Leaderboard</h2>
+  <div class="mode-tabs" id="modeTabs"></div>
+  <div class="cat-tabs" id="catTabs"></div>
+  <div id="lbArea"></div>
+  <button class="btn" onclick="window.location.href='dashboard.html'">← Back to Dashboard</button>
+</div>
+
+<script src="quiz.js"></script>
+<script>
+const userData = getCurrentUserData();
+const PLAYER_NAME = userData ? userData.name : 'Player';
+
+const MODES_INFO = {
+  classic: { name: "Classic", icon: "🎮" },
+  survival: { name: "Survival", icon: "💀" },
+  speed: { name: "Speed Run", icon: "⚡" }
+};
+
+const CATEGORIES_INFO = {
+  HTML_CSS: { name: "HTML & CSS", icon: "🌐" },
+  JavaScript: { name: "JavaScript", icon: "⚡" },
+  Database_SQL: { name: "Database & SQL", icon: "🗄️" },
+  Mobile_Dev: { name: "Mobile Dev", icon: "📱" },
+  Web_Dev: { name: "Web Development", icon: "🔧" },
+  UI_UX: { name: "UI/UX Design", icon: "🎨" },
+  Networking: { name: "Networking", icon: "🔌" },
+  Programming_Logic: { name: "Programming Logic", icon: "💻" }
+};
+
+let activeMode = 'classic';
+let activeCategory = 'HTML_CSS';
+
+function getLeaderboard(mode, cat){
+  const lb = JSON.parse(localStorage.getItem('leaderboard') || '{}');
+  const key = `${cat}_${mode}`;
+  return lb[key] || [];
+}
+
+function renderModeTabs(){
+  const modeTabsEl = document.getElementById('modeTabs');
+  modeTabsEl.innerHTML = '';
+  Object.keys(MODES_INFO).forEach(key => {
+    const mode = MODES_INFO[key];
+    const tab = document.createElement('button');
+    tab.className = 'mode-tab' + (key === activeMode ? ' active' : '');
+    tab.innerHTML = `${mode.icon} ${mode.name}`;
+    tab.onclick = () => switchMode(key);
+    modeTabsEl.appendChild(tab);
+  });
+}
+
+function renderCatTabs(){
+  const catTabsEl = document.getElementById('catTabs');
+  catTabsEl.innerHTML = '';
+  Object.keys(CATEGORIES_INFO).forEach(key => {
+    const cat = CATEGORIES_INFO[key];
+    const tab = document.createElement('button');
+    tab.className = 'cat-tab' + (key === activeCategory ? ' active' : '');
+    tab.innerHTML = `${cat.icon} ${cat.name}`;
+    tab.onclick = () => switchCategory(key);
+    catTabsEl.appendChild(tab);
+  });
+}
+
+function switchMode(mode){
+  activeMode = mode;
+  renderModeTabs();
+  renderLeaderboard();
+}
+
+function switchCategory(cat){
+  activeCategory = cat;
+  renderCatTabs();
+  renderLeaderboard();
+}
+
+function renderLeaderboard(){
+  const lbArea = document.getElementById('lbArea');
+  const cat = CATEGORIES_INFO[activeCategory];
+  const mode = MODES_INFO[activeMode];
+  const arr = getLeaderboard(activeMode, activeCategory);
+
+  // Keep only highest score per player
+  const seen = {};
+  arr.forEach(e => {
+    if(!seen[e.name] || e.score > seen[e.name].score){
+      seen[e.name] = e;
+    }
+  });
+  const filtered = Object.values(seen).sort((a,b) => b.score - a.score).slice(0, 10);
+
+  let html = `<div class="category-header">
+    <span class="category-icon">${cat.icon}</span>
+    <span class="category-name">${cat.name}</span>
+    <span class="mode-badge">${mode.icon} ${mode.name}</span>
+  </div>`;
+
+  if(filtered.length === 0){
+    html += '<div class="no-scores">No scores yet in this mode. Be the first to play!</div>';
+  } else {
+    html += '<ul class="leaderboard-list">';
+    filtered.forEach((e, i) => {
+      const isCurrentPlayer = e.name === PLAYER_NAME;
+      const rankClass = i < 3 ? `rank-${i+1}` : '';
+      const rankIcon = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i+1);
+      html += `
+        <li class="leaderboard-item ${isCurrentPlayer ? 'current-player' : ''}">
+          <div class="rank ${rankClass}">${rankIcon}</div>
+          <span class="player-avatar">${e.avatar || '😎'}</span>
+          <div class="player-info">
+            <div class="player-name">${e.name}</div>
+            <div class="player-date">${e.date || ''}</div>
+          </div>
+          <div class="player-score">
+            <div class="score-value">${e.score} pts</div>
+            <div class="score-detail">${e.correct || '?'}/${e.total || '10'} correct</div>
+          </div>
+        </li>`;
+    });
+    html += '</ul>';
+  }
+
+  lbArea.innerHTML = html;
+}
+
+renderModeTabs();
+renderCatTabs();
+renderLeaderboard();
+</script>
+</body>
+</html>
