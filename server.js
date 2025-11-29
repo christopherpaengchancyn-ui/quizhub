@@ -263,12 +263,13 @@ io.on("connection", (socket) => {
   });
 
   // Host starts the game
-  socket.on("startHostGame", ({ roomCode, questions }) => {
+  socket.on("startHostGame", ({ roomCode, questions, timeLimit }) => {
     const room = hostRooms[roomCode];
     if (!room || room.hostSocketId !== socket.id) return;
 
     room.started = true;
     room.questions = questions;
+    room.timeLimit = timeLimit || 30;
     room.finishedCount = 0;
 
     // Reset scores
@@ -278,8 +279,8 @@ io.on("connection", (socket) => {
     });
 
     // Notify all players to start
-    io.to(`host_${roomCode}`).emit("hostGameStarted", { questions });
-    console.log(`Host game started: ${roomCode} with ${questions.length} questions`);
+    io.to(`host_${roomCode}`).emit("hostGameStarted", { questions, timeLimit: room.timeLimit });
+    console.log(`Host game started: ${roomCode} with ${questions.length} questions, ${room.timeLimit}s per question`);
   });
 
   // Host reconnects to view game

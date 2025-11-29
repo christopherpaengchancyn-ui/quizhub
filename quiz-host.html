@@ -50,7 +50,7 @@ body{font-family:Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;
 .rank-score{color:#8ad9d9;font-weight:bold;font-size:13px;}
 .btn{width:100%;padding:12px;border-radius:10px;border:none;background:linear-gradient(90deg,#b68b5a,#d9b78a);color:#fff;font-weight:600;cursor:pointer;transition:transform 0.2s;min-height:48px;}
 .btn:hover{transform:scale(1.02);}
-@media(max-width:480px){.card{padding:15px 12px;}.question-box{padding:15px;}.header{justify-content:center;}.stats-bar{justify-content:center;}.final-stats{gap:8px;}.final-stat{padding:12px 8px;}}
+@media(max-width:480px){.card{padding:15px 10px;}.question-box{padding:12px;}.header{justify-content:center;flex-direction:column;}.stats-bar{justify-content:center;width:100%;}.stat{padding:5px 8px;font-size:10px;}.final-stats{gap:6px;grid-template-columns:repeat(2,1fr);}.final-stat{padding:10px 6px;}.final-stat-value{font-size:16px;}.choice{padding:10px;font-size:13px;min-height:44px;}.q-text{font-size:14px;}.live-scores{padding:10px;}.score-row{padding:6px 0;}.player-info{font-size:12px;}.player-score{font-size:12px;}.rank-item{padding:8px 10px;}.rank-medal{font-size:16px;}.rank-name,.rank-score{font-size:12px;}}
   </style>
 </head>
 <body>
@@ -107,7 +107,7 @@ body{font-family:Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;
 
     let socket = io();
     const roomCode = sessionStorage.getItem('hostRoomCode');
-    const TIME_LIMIT = 30;
+    const TIME_LIMIT = parseInt(sessionStorage.getItem('hostTimeLimit')) || 30;
 
     let qsList = JSON.parse(sessionStorage.getItem('hostGameQuestions') || '[]');
     let index = 0, totalPoints = 0, correctCount = 0, currentStreak = 0, bestStreak = 0;
