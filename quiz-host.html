@@ -132,6 +132,7 @@ body{font-family:Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;
       timerInterval = setInterval(() => {
         timeLeft--;
         updateTimerDisplay(timeLeft);
+        if (timeLeft <= 5 && timeLeft > 0) SoundSystem.tick();
         if (timeLeft <= 0) { clearInterval(timerInterval); handleAnswer(null, null); }
       }, 1000);
     }
@@ -177,6 +178,7 @@ body{font-family:Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;
       });
 
       if (correct) {
+        SoundSystem.correct();
         correctCount++;
         currentStreak++;
         if (currentStreak > bestStreak) bestStreak = currentStreak;
@@ -191,6 +193,7 @@ body{font-family:Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;
         }
         if (event) showPointsPopup(points, event.clientX, event.clientY);
       } else {
+        SoundSystem.wrong();
         currentStreak = 0;
         document.getElementById('streakDisplay').textContent = 0;
       }
@@ -217,6 +220,7 @@ body{font-family:Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;
 
     function finishQuiz() {
       clearInterval(timerInterval);
+      SoundSystem.victory();
       socket.emit('hostGameFinished', { roomCode, score: totalPoints, correct: correctCount, total: qsList.length });
       document.getElementById('quizScreen').style.display = 'none';
       document.getElementById('resultScreen').style.display = 'block';

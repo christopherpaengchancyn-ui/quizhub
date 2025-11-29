@@ -149,6 +149,7 @@ function startTimer() {
   timerInterval = setInterval(() => {
     timeLeft--;
     updateTimerDisplay(timeLeft);
+    if (timeLeft <= 5 && timeLeft > 0) SoundSystem.tick();
     if (timeLeft <= 0) {
       clearInterval(timerInterval);
       handleAnswer(null);
@@ -221,6 +222,7 @@ function handleAnswer(userAnswer, event) {
   });
 
   if (correct) {
+    SoundSystem.correct();
     correctCount++;
     currentStreak++;
     if (currentStreak > bestStreak) bestStreak = currentStreak;
@@ -236,6 +238,7 @@ function handleAnswer(userAnswer, event) {
     document.getElementById('streakDisplay').classList.add('streak-fire');
     setTimeout(() => document.getElementById('streakDisplay').classList.remove('streak-fire'), 500);
   } else {
+    SoundSystem.wrong();
     currentStreak = 0;
     wrongQuestions.push({ q: q.q, correct: q.a, your: userAnswer || "(Time's up)" });
 
@@ -260,6 +263,7 @@ function nextQuestion() {
 // ----------------- Game Over (Survival) -----------------
 function gameOver() {
   clearInterval(timerInterval);
+  SoundSystem.gameOver();
   document.getElementById('quizScreen').style.display = 'none';
   document.getElementById('gameOverScreen').style.display = 'block';
 
@@ -323,6 +327,7 @@ function saveResults() {
 // ----------------- Finish Quiz -----------------
 function finishQuiz() {
   clearInterval(timerInterval);
+  SoundSystem.victory();
   document.getElementById('quizScreen').style.display = 'none';
   document.getElementById('resultScreen').style.display = 'block';
 

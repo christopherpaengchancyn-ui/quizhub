@@ -121,9 +121,10 @@ h2{color:#d9b78a;margin-bottom:15px;font-size:clamp(20px,5vw,24px);}
 
     // Game started
     socket.on('hostGameStarted', (data) => {
+      SoundSystem.gameStart();
       sessionStorage.setItem('hostGameQuestions', JSON.stringify(data.questions));
       sessionStorage.setItem('hostTimeLimit', data.timeLimit || 30);
-      window.location.href = 'quiz-host.html';
+      setTimeout(() => window.location.href = 'quiz-host.html', 500);
     });
 
     // Host left

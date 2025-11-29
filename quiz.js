@@ -1,6 +1,163 @@
 // --- Avatars List ---
 const AVATARS = ['😎', '🎮', '💻', '🚀', '⚡', '🔥', '🎯', '🏆', '🌟', '💡', '🎓', '📱', '🖥️', '🤖', '👨‍💻', '👩‍💻', '🦊', '🐱', '🐶', '🦁', 'isulogo', 'itlogo'];
 
+// --- Sound System (Web Audio API) ---
+const SoundSystem = {
+  audioContext: null,
+  settings: {
+    soundEffects: true,
+    backgroundMusic: true,
+    volume: 0.5
+  },
+  bgMusicOscillator: null,
+  bgMusicGain: null,
+
+  init() {
+    // Load settings from localStorage
+    const saved = localStorage.getItem('quizhub_sound_settings');
+    if (saved) {
+      this.settings = JSON.parse(saved);
+    }
+    // Create audio context on first user interaction
+    document.addEventListener('click', () => {
+      if (!this.audioContext) {
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+      }
+    }, { once: true });
+  },
+
+  saveSettings() {
+    localStorage.setItem('quizhub_sound_settings', JSON.stringify(this.settings));
+  },
+
+  setSoundEffects(enabled) {
+    this.settings.soundEffects = enabled;
+    this.saveSettings();
+  },
+
+  setBackgroundMusic(enabled) {
+    this.settings.backgroundMusic = enabled;
+    this.saveSettings();
+    if (!enabled) this.stopBgMusic();
+  },
+
+  playTone(frequency, duration, type = 'sine', volume = 0.3) {
+    if (!this.settings.soundEffects || !this.audioContext) return;
+    try {
+      const oscillator = this.audioContext.createOscillator();
+      const gainNode = this.audioContext.createGain();
+      oscillator.connect(gainNode);
+      gainNode.connect(this.audioContext.destination);
+      oscillator.frequency.value = frequency;
+      oscillator.type = type;
+      gainNode.gain.setValueAtTime(volume * this.settings.volume, this.audioContext.currentTime);
+      gainNode.gain.exponentialRampToValueAtTime(0.01, this.audioContext.currentTime + duration);
+      oscillator.start(this.audioContext.currentTime);
+      oscillator.stop(this.audioContext.currentTime + duration);
+    } catch(e) { console.log('Sound error:', e); }
+  },
+
+  // Sound Effects
+  correct() {
+    if (!this.audioContext) return;
+    this.playTone(523.25, 0.1); // C5
+    setTimeout(() => this.playTone(659.25, 0.1), 100); // E5
+    setTimeout(() => this.playTone(783.99, 0.2), 200); // G5
+  },
+
+  wrong() {
+    if (!this.audioContext) return;
+    this.playTone(200, 0.3, 'sawtooth', 0.2);
+  },
+
+  tick() {
+    if (!this.audioContext) return;
+    this.playTone(800, 0.05, 'sine', 0.1);
+  },
+
+  click() {
+    if (!this.audioContext) return;
+    this.playTone(600, 0.05, 'sine', 0.1);
+  },
+
+  gameStart() {
+    if (!this.audioContext) return;
+    this.playTone(392, 0.15); // G4
+    setTimeout(() => this.playTone(523.25, 0.15), 150); // C5
+    setTimeout(() => this.playTone(659.25, 0.15), 300); // E5
+    setTimeout(() => this.playTone(783.99, 0.3), 450); // G5
+  },
+
+  victory() {
+    if (!this.audioContext) return;
+    const notes = [523.25, 587.33, 659.25, 783.99, 659.25, 783.99, 1046.50];
+    notes.forEach((freq, i) => {
+      setTimeout(() => this.playTone(freq, 0.15), i * 100);
+    });
+  },
+
+  gameOver() {
+    if (!this.audioContext) return;
+    this.playTone(392, 0.3, 'sine', 0.2);
+    setTimeout(() => this.playTone(349.23, 0.3, 'sine', 0.2), 300);
+    setTimeout(() => this.playTone(329.63, 0.5, 'sine', 0.2), 600);
+  },
+
+  countdown(num) {
+    if (!this.audioContext) return;
+    if (num > 0) {
+      this.playTone(440, 0.1, 'sine', 0.2);
+    } else {
+      this.playTone(880, 0.3, 'sine', 0.3);
+    }
+  },
+
+  // Background Music (simple looping ambient)
+  startBgMusic() {
+    if (!this.settings.backgroundMusic || !this.audioContext || this.bgMusicOscillator) return;
+    try {
+      this.bgMusicGain = this.audioContext.createGain();
+      this.bgMusicGain.connect(this.audioContext.destination);
+      this.bgMusicGain.gain.value = 0.05 * this.settings.volume;
+
+      // Create a simple ambient pad
+      const playChord = () => {
+        if (!this.settings.backgroundMusic || !this.bgMusicGain) return;
+        const freqs = [130.81, 164.81, 196.00, 261.63]; // C chord
+        freqs.forEach(freq => {
+          const osc = this.audioContext.createOscillator();
+          const gain = this.audioContext.createGain();
+          osc.connect(gain);
+          gain.connect(this.bgMusicGain);
+          osc.frequency.value = freq;
+          osc.type = 'sine';
+          gain.gain.setValueAtTime(0.02, this.audioContext.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.audioContext.currentTime + 4);
+          osc.start();
+          osc.stop(this.audioContext.currentTime + 4);
+        });
+      };
+
+      playChord();
+      this.bgMusicInterval = setInterval(playChord, 4000);
+    } catch(e) { console.log('BG Music error:', e); }
+  },
+
+  stopBgMusic() {
+    if (this.bgMusicInterval) {
+      clearInterval(this.bgMusicInterval);
+      this.bgMusicInterval = null;
+    }
+    if (this.bgMusicGain) {
+      this.bgMusicGain.disconnect();
+      this.bgMusicGain = null;
+    }
+  }
+};
+
+// Initialize sound system
+SoundSystem.init();
+
 // --- Render Avatar (handles emoji or logo images) ---
 function renderAvatar(avatar, size = 50) {
   if (!avatar) avatar = '😎';
@@ -80,6 +237,44 @@ function updateAvatar(avatar){
     accounts[cur].avatar = avatar;
     saveAccounts(accounts);
   }
+}
+
+function updateUserName(newName){
+  const cur=localStorage.getItem('sn_current');
+  const accounts=loadAccounts();
+  if(cur && accounts[cur]){
+    if(!newName || newName.trim().length === 0) {
+      alert('Name cannot be empty!');
+      return false;
+    }
+    accounts[cur].name = newName.trim();
+    saveAccounts(accounts);
+    return true;
+  }
+  return false;
+}
+
+function updatePassword(currentPass, newPass, confirmPass){
+  const cur=localStorage.getItem('sn_current');
+  const accounts=loadAccounts();
+  if(cur && accounts[cur]){
+    if(accounts[cur].pass !== currentPass){
+      alert('Current password is incorrect!');
+      return false;
+    }
+    if(!newPass || newPass.length < 4){
+      alert('New password must be at least 4 characters!');
+      return false;
+    }
+    if(newPass !== confirmPass){
+      alert('New passwords do not match!');
+      return false;
+    }
+    accounts[cur].pass = newPass;
+    saveAccounts(accounts);
+    return true;
+  }
+  return false;
 }
 
 function requireLogin(){
