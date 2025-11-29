@@ -1,5 +1,27 @@
 // --- Avatars List ---
-const AVATARS = ['😎', '🎮', '💻', '🚀', '⚡', '🔥', '🎯', '🏆', '🌟', '💡', '🎓', '📱', '🖥️', '🤖', '👨‍💻', '👩‍💻', '🦊', '🐱', '🐶', '🦁', 'isulogo', 'itlogo'];
+const AVATARS = [
+  // Image avatars
+  'avatar1.jpg', 'avatar2.jpg', 'avatar3.jpg', 'avatar4.jpg', 'avatar5.jpg',
+  'avatar6.jpg', 'avatar7.jpg', 'avatar8.jpg', 'avatar9.jpg', 'avatar10.jpg',
+  'avatar11.jpg', 'avatar12.jpg', 'avatar13.jpg', 'avatar14.jpg', 'avatar15.jpg',
+  'avatar16.jpg', 'avatar17.jpg', 'avatar18.jpg', 'avatar19.jpg', 'avatar20.jpg',
+  'avatar21.jpg',
+  // Logo avatars
+  'isulogo.jpg', 'ITlogo.jpg'
+];
+
+// Helper function to check if avatar is an image file
+function isImageAvatar(avatar) {
+  return avatar && (avatar.endsWith('.jpg') || avatar.endsWith('.png') || avatar.endsWith('.gif'));
+}
+
+// Helper function to render avatar (image or emoji)
+function renderAvatar(avatar, size = 40) {
+  if (isImageAvatar(avatar)) {
+    return `<img src="${avatar}" alt="Avatar" style="width:${size}px;height:${size}px;border-radius:50%;object-fit:cover;">`;
+  }
+  return `<span style="font-size:${size * 0.7}px;">${avatar || '😎'}</span>`;
+}
 
 // --- Sound System (Web Audio API) ---
 const SoundSystem = {

@@ -6,74 +6,102 @@
   <title>Host a Game - QuizHub</title>
   <style>
 *{box-sizing:border-box;}
-body{font-family:Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;justify-content:center;align-items:flex-start;padding:20px 15px;margin:0;min-height:100vh;}
-.card{background:#24201c;padding:25px;border-radius:14px;width:100%;max-width:700px;box-shadow:0 6px 30px rgba(2,2,2,0.6);}
-@media(max-width:600px){.card{padding:15px;}.room-code{font-size:28px!important;letter-spacing:5px!important;}.question-builder{padding:15px;}.choice-row{flex-wrap:wrap;}.choice-field{min-width:100%!important;margin-top:5px;}.correct-label{width:auto;}.players-grid{grid-template-columns:repeat(2,1fr)!important;}.time-options{gap:6px;}.time-option{padding:8px 12px;}.time-option span{font-size:12px;}.time-limit-box{padding:12px;}}
-h2{color:#d9b78a;margin-bottom:15px;text-align:center;}
-.room-code-display{background:linear-gradient(135deg,#3a3632,#24201c);padding:25px;border-radius:12px;text-align:center;margin-bottom:20px;border:1px solid rgba(255,255,255,0.05);}
-.room-code-label{color:rgba(255,255,255,0.5);font-size:12px;margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;}
-.room-code{font-size:42px;font-weight:bold;color:#d9b78a;letter-spacing:8px;font-family:monospace;}
-.copy-btn{background:rgba(255,255,255,0.05);border:none;padding:8px 16px;border-radius:8px;cursor:pointer;color:#cfc5b8;margin-top:10px;transition:all 0.2s;}
-.copy-btn:hover{background:rgba(255,255,255,0.1);}
-.section-title{color:#b68b5a;font-size:12px;margin:20px 0 10px 0;text-transform:uppercase;letter-spacing:1px;}
-.question-builder{background:rgba(255,255,255,0.02);padding:18px;border-radius:10px;margin-bottom:15px;}
-.question-input{width:100%;padding:12px;margin:6px 0;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:rgba(255,255,255,0.015);color:#cfc5b8;font-size:14px;box-sizing:border-box;}
-.question-input:focus{outline:none;border-color:rgba(182,139,90,0.3);}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;justify-content:center;align-items:flex-start;padding:20px 15px;margin:0;min-height:100vh;}
+.card{background:#24201c;padding:30px;border-radius:16px;width:100%;max-width:700px;box-shadow:0 8px 40px rgba(0,0,0,0.5);}
+@media(max-width:600px){.card{padding:20px;}.room-code{font-size:28px!important;letter-spacing:6px!important;}.question-builder{padding:15px;}.choice-row{flex-wrap:wrap;}.choice-field{min-width:100%!important;margin-top:5px;}.correct-label{width:auto;}.players-grid{grid-template-columns:repeat(2,1fr)!important;}.time-options{gap:6px;}.time-option{padding:8px 14px;}.time-option span{font-size:12px;}.settings-box{padding:15px;}}
+
+/* Back Link */
+.back-link{color:rgba(255,255,255,0.5);text-decoration:none;font-size:13px;display:inline-flex;align-items:center;gap:6px;margin-bottom:20px;transition:color 0.2s;}
+.back-link:hover{color:#d9b78a;}
+
+/* Header */
+.page-header{text-align:center;margin-bottom:20px;}
+h1{color:#d9b78a;margin:0;font-size:24px;font-weight:600;}
+
+/* Room Code */
+.room-code-display{background:rgba(255,255,255,0.02);padding:28px;border-radius:14px;text-align:center;margin-bottom:25px;border:1px solid rgba(255,255,255,0.05);}
+.room-code-label{color:rgba(255,255,255,0.45);font-size:11px;margin-bottom:10px;text-transform:uppercase;letter-spacing:1.5px;}
+.room-code{font-size:42px;font-weight:700;color:#d9b78a;letter-spacing:10px;font-family:monospace;}
+.copy-btn{background:rgba(255,255,255,0.08);border:none;padding:10px 18px;border-radius:8px;cursor:pointer;color:#cfc5b8;margin-top:15px;transition:all 0.2s;font-size:13px;}
+.copy-btn:hover{background:rgba(255,255,255,0.12);}
+
+/* Section Title */
+.section-title{color:rgba(255,255,255,0.5);font-size:11px;margin:22px 0 12px 0;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;}
+
+/* Settings Box */
+.settings-box{background:rgba(255,255,255,0.02);padding:18px;border-radius:12px;margin-bottom:15px;border:1px solid rgba(255,255,255,0.05);}
+.time-options{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
+.time-option{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.05);padding:11px 18px;border-radius:10px;cursor:pointer;transition:all 0.2s;border:1px solid transparent;}
+.time-option:hover{background:rgba(255,255,255,0.08);}
+.time-option input{accent-color:#d9b78a;width:18px;height:18px;cursor:pointer;}
+.time-option span{color:#cfc5b8;font-size:14px;font-weight:600;}
+.time-option:has(input:checked){background:rgba(182,139,90,0.15);border-color:#d9b78a;}
+
+/* Question Builder */
+.question-builder{background:rgba(255,255,255,0.02);padding:20px;border-radius:12px;margin-bottom:15px;border:1px solid rgba(255,255,255,0.05);}
+.question-input{width:100%;padding:13px 14px;margin:6px 0;border-radius:8px;border:1px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.2);color:#cfc5b8;font-size:14px;box-sizing:border-box;transition:border-color 0.2s;}
+.question-input:focus{outline:none;border-color:#d9b78a;}
 .choices-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0;}
-.hint{color:rgba(255,255,255,0.4);font-size:11px;margin-top:5px;}
-.btn{width:100%;padding:12px;margin:6px 0;border-radius:10px;border:none;background:linear-gradient(90deg,#b68b5a,#d9b78a);color:#fff;font-weight:600;cursor:pointer;transition:transform 0.2s;}
-.btn:hover{transform:scale(1.02);}
-.btn-add{background:linear-gradient(90deg,#5a8bb6,#8ad9d9);}
+.hint{color:rgba(255,255,255,0.35);font-size:11px;margin-top:8px;}
+
+/* Buttons */
+.btn{width:100%;padding:13px;margin:6px 0;border-radius:10px;border:none;background:linear-gradient(135deg,#b68b5a,#d9b78a);color:#fff;font-weight:600;cursor:pointer;transition:all 0.2s;font-size:14px;}
+.btn:hover{transform:translateY(-2px);box-shadow:0 5px 20px rgba(182,139,90,0.3);}
+.btn-add{background:linear-gradient(135deg,#5a8bb6,#8ad9d9);}
+.btn-add:hover{box-shadow:0 5px 20px rgba(90,139,182,0.3);}
+
+/* Question List */
 .question-list{max-height:200px;overflow-y:auto;margin:10px 0;}
-.question-item{display:flex;align-items:center;padding:10px;background:rgba(255,255,255,0.03);border-radius:8px;margin-bottom:6px;}
-.q-num{background:rgba(182,139,90,0.2);padding:4px 10px;border-radius:15px;margin-right:10px;color:#d9b78a;font-size:12px;font-weight:600;}
+.question-item{display:flex;align-items:center;padding:12px;background:rgba(255,255,255,0.02);border-radius:10px;margin-bottom:6px;border:1px solid rgba(255,255,255,0.03);}
+.q-num{background:rgba(182,139,90,0.15);padding:5px 12px;border-radius:15px;margin-right:12px;color:#d9b78a;font-size:12px;font-weight:600;}
 .q-text{flex:1;font-size:13px;color:#cfc5b8;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.delete-btn{background:rgba(255,100,100,0.2);border:none;padding:6px 10px;border-radius:6px;cursor:pointer;color:#ff6b6b;font-size:12px;transition:all 0.2s;}
-.delete-btn:hover{background:rgba(255,100,100,0.4);}
-.players-section{background:rgba(255,255,255,0.02);padding:15px;border-radius:10px;margin:15px 0;}
-.players-grid{display:flex;flex-wrap:wrap;gap:10px;margin-top:10px;}
-.player-chip{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.05);padding:6px 12px;border-radius:20px;}
+.delete-btn{background:rgba(255,100,100,0.15);border:none;padding:7px 12px;border-radius:8px;cursor:pointer;color:#ff6b6b;font-size:12px;transition:all 0.2s;}
+.delete-btn:hover{background:rgba(255,100,100,0.3);}
+
+/* Players Section */
+.players-section{background:rgba(255,255,255,0.02);padding:18px;border-radius:12px;margin:15px 0;border:1px solid rgba(255,255,255,0.05);}
+.players-grid{display:flex;flex-wrap:wrap;gap:10px;margin-top:12px;}
+.player-chip{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.05);padding:8px 14px;border-radius:25px;}
 .player-chip .avatar{font-size:18px;}
-.player-chip .name{font-size:13px;}
-.empty-msg{color:rgba(255,255,255,0.4);font-size:13px;text-align:center;padding:15px;}
-.status-bar{display:flex;align-items:center;justify-content:center;gap:15px;margin:20px 0;}
-.status-badge{padding:6px 14px;border-radius:20px;font-size:12px;font-weight:600;}
-.status-waiting{background:rgba(255,215,0,0.2);color:#ffd700;}
-.status-ready{background:rgba(74,222,128,0.2);color:#4ade80;}
-.btn-start{background:linear-gradient(90deg,#4ade80,#22c55e);font-size:16px;padding:14px;}
-.btn-start:disabled{background:#3a3632;color:rgba(255,255,255,0.3);cursor:not-allowed;transform:none;}
-.warning-text{color:#ff6b6b;font-size:12px;text-align:center;margin-top:8px;}
-.back-link{color:#b68b5a;text-decoration:none;font-size:13px;display:inline-block;margin-bottom:15px;}
-.back-link:hover{text-decoration:underline;}
-.choices-builder{display:flex;flex-direction:column;gap:8px;margin:10px 0;}
+.player-chip .name{font-size:13px;font-weight:500;}
+.empty-msg{color:rgba(255,255,255,0.35);font-size:13px;text-align:center;padding:18px;}
+
+/* Status Bar */
+.status-bar{display:flex;align-items:center;justify-content:center;gap:15px;margin:22px 0;}
+.status-badge{padding:8px 16px;border-radius:20px;font-size:12px;font-weight:600;}
+.status-waiting{background:rgba(255,215,0,0.15);color:#ffd700;}
+.status-ready{background:rgba(74,222,128,0.15);color:#4ade80;}
+.btn-start{background:linear-gradient(135deg,#4ade80,#22c55e);font-size:15px;padding:15px;}
+.btn-start:hover{box-shadow:0 5px 20px rgba(74,222,128,0.3);}
+.btn-start:disabled{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.3);cursor:not-allowed;transform:none;box-shadow:none;}
+.warning-text{color:#ff6b6b;font-size:12px;text-align:center;margin-top:10px;}
+
+/* Choices Builder */
+.choices-builder{display:flex;flex-direction:column;gap:8px;margin:12px 0;}
 .choice-row{display:flex;align-items:center;gap:10px;}
 .choice-row input[type="radio"]{width:20px;height:20px;accent-color:#4ade80;cursor:pointer;flex-shrink:0;}
 .choice-field{flex:1;margin:0!important;}
 .correct-label{color:#4ade80;font-size:12px;font-weight:600;width:70px;text-align:center;}
-.time-limit-box{background:rgba(255,255,255,0.02);padding:15px;border-radius:10px;margin-bottom:15px;}
-.time-options{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
-.time-option{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.05);padding:10px 16px;border-radius:8px;cursor:pointer;transition:all 0.2s;}
-.time-option:hover{background:rgba(255,255,255,0.1);}
-.time-option input{accent-color:#d9b78a;width:18px;height:18px;cursor:pointer;}
-.time-option span{color:#cfc5b8;font-size:14px;font-weight:600;}
-.time-option:has(input:checked){background:rgba(182,139,90,0.2);border:1px solid #d9b78a;}
   </style>
 </head>
 <body>
 <div class="card">
   <a href="dashboard.html" class="back-link">← Back to Dashboard</a>
-  <h2>🎮 Host a Game</h2>
+
+  <div class="page-header">
+    <h1>Host a Game</h1>
+  </div>
 
   <!-- Room Code Display -->
   <div class="room-code-display">
     <div class="room-code-label">Share this code with players</div>
     <div class="room-code" id="roomCode">------</div>
-    <button class="copy-btn" onclick="copyRoomCode()">📋 Copy Code</button>
+    <button class="copy-btn" onclick="copyRoomCode()">Copy Code</button>
   </div>
 
   <!-- Time Limit Setting -->
-  <div class="section-title">⏱️ Time Limit Per Question</div>
-  <div class="time-limit-box">
+  <div class="section-title">Time Limit Per Question</div>
+  <div class="settings-box">
     <div class="time-options">
       <label class="time-option">
         <input type="radio" name="timeLimit" value="15"> <span>15s</span>
@@ -93,8 +121,30 @@ h2{color:#d9b78a;margin-bottom:15px;text-align:center;}
     </div>
   </div>
 
+  <!-- Question Count Setting -->
+  <div class="section-title">Number of Questions</div>
+  <div class="settings-box">
+    <div class="time-options">
+      <label class="time-option">
+        <input type="radio" name="questionLimit" value="10" checked onchange="updateQuestionLimit()"> <span>10</span>
+      </label>
+      <label class="time-option">
+        <input type="radio" name="questionLimit" value="20" onchange="updateQuestionLimit()"> <span>20</span>
+      </label>
+      <label class="time-option">
+        <input type="radio" name="questionLimit" value="30" onchange="updateQuestionLimit()"> <span>30</span>
+      </label>
+      <label class="time-option">
+        <input type="radio" name="questionLimit" value="40" onchange="updateQuestionLimit()"> <span>40</span>
+      </label>
+      <label class="time-option">
+        <input type="radio" name="questionLimit" value="50" onchange="updateQuestionLimit()"> <span>50</span>
+      </label>
+    </div>
+  </div>
+
   <!-- Question Builder -->
-  <div class="section-title">📝 Add Questions (<span id="questionCount">0</span>/20)</div>
+  <div class="section-title">Add Questions (<span id="questionCount">0</span>/<span id="maxQuestions">10</span>)</div>
   <div class="question-builder">
     <input type="text" class="question-input" id="questionText" placeholder="Enter your question...">
 
@@ -122,7 +172,7 @@ h2{color:#d9b78a;margin-bottom:15px;text-align:center;}
       </div>
     </div>
 
-    <button type="button" class="btn btn-add" id="addQuestionBtn">➕ Add Question</button>
+    <button type="button" class="btn btn-add" id="addQuestionBtn">Add Question</button>
   </div>
 
   <!-- Question List -->
@@ -131,7 +181,7 @@ h2{color:#d9b78a;margin-bottom:15px;text-align:center;}
   </div>
 
   <!-- Players Section -->
-  <div class="section-title">👥 Players Joined (<span id="playerCount">0</span>)</div>
+  <div class="section-title">Players Joined (<span id="playerCount">0</span>)</div>
   <div class="players-section">
     <div class="players-grid" id="playersList">
       <p class="empty-msg" style="width:100%;">Waiting for players to join...</p>
@@ -140,9 +190,9 @@ h2{color:#d9b78a;margin-bottom:15px;text-align:center;}
 
   <!-- Status & Start -->
   <div class="status-bar">
-    <span class="status-badge status-waiting" id="statusBadge">⏳ Waiting for players...</span>
+    <span class="status-badge status-waiting" id="statusBadge">Waiting for players...</span>
   </div>
-  <button class="btn btn-start" id="startBtn" onclick="startGame()" disabled>🚀 Start Game</button>
+  <button class="btn btn-start" id="startBtn" onclick="startGame()" disabled>Start Game</button>
   <p class="warning-text" id="minWarning">Add at least 5 questions to start</p>
 </div>
 
@@ -191,10 +241,22 @@ h2{color:#d9b78a;margin-bottom:15px;text-align:center;}
       }
     }
 
+    // Get selected question limit
+    function getQuestionLimit() {
+      return parseInt(document.querySelector('input[name="questionLimit"]:checked').value) || 10;
+    }
+
+    // Update question limit display
+    function updateQuestionLimit() {
+      document.getElementById('maxQuestions').textContent = getQuestionLimit();
+      checkStartConditions();
+    }
+
     // Add question function
     function addQuestion() {
-      if (questions.length >= 20) {
-        alert('Maximum 20 questions allowed!');
+      const maxQ = getQuestionLimit();
+      if (questions.length >= maxQ) {
+        alert('Maximum ' + maxQ + ' questions allowed!');
         return;
       }
 
@@ -256,11 +318,14 @@ h2{color:#d9b78a;margin-bottom:15px;text-align:center;}
     }
 
     function checkStartConditions() {
-      const canStart = questions.length >= 5 && players.length >= 1;
+      const maxQ = getQuestionLimit();
+      const minQ = Math.min(5, maxQ); // At least 5 or max if less than 5
+      const canStart = questions.length >= minQ && players.length >= 1;
       document.getElementById('startBtn').disabled = !canStart;
-      document.getElementById('minWarning').style.display = questions.length >= 5 ? 'none' : 'block';
+      document.getElementById('minWarning').textContent = `Add at least ${minQ} questions to start`;
+      document.getElementById('minWarning').style.display = questions.length >= minQ ? 'none' : 'block';
 
-      if (players.length >= 1 && questions.length >= 5) {
+      if (players.length >= 1 && questions.length >= minQ) {
         document.getElementById('statusBadge').textContent = '✅ Ready to start!';
         document.getElementById('statusBadge').className = 'status-badge status-ready';
       } else if (players.length >= 1) {
@@ -288,7 +353,9 @@ h2{color:#d9b78a;margin-bottom:15px;text-align:center;}
     }
 
     function startGame() {
-      if (questions.length < 5) { alert('Add at least 5 questions!'); return; }
+      const maxQ = getQuestionLimit();
+      const minQ = Math.min(5, maxQ);
+      if (questions.length < minQ) { alert('Add at least ' + minQ + ' questions!'); return; }
       if (players.length < 1) { alert('Wait for at least 1 player to join!'); return; }
       const timeLimit = parseInt(document.querySelector('input[name="timeLimit"]:checked').value) || 30;
       socket.emit('startHostGame', { roomCode, questions, timeLimit });

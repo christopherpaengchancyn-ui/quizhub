@@ -6,64 +6,81 @@
 <title>Profile - QuizHub</title>
 <style>
 *{box-sizing:border-box;}
-body{font-family:Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;padding:15px;}
-.card{background:#24201c;padding:30px;border-radius:14px;width:100%;max-width:450px;text-align:center;box-shadow:0 6px 30px rgba(2,2,2,0.6);}
-@media(max-width:480px){.card{padding:20px;}.current-avatar{font-size:60px!important;}.stats-grid{grid-template-columns:repeat(2,1fr)!important;}.avatar-option{font-size:24px!important;padding:6px!important;}}
-h2{color:#d9b78a;margin:10px 0;}
-.avatar-section{margin:20px 0;}
-.current-avatar{font-size:80px;cursor:pointer;transition:transform 0.2s;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;justify-content:center;align-items:flex-start;min-height:100vh;margin:0;padding:20px 15px;}
+.card{background:#24201c;padding:35px;border-radius:16px;width:100%;max-width:480px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.5);}
+@media(max-width:480px){.card{padding:25px;}.current-avatar{font-size:60px!important;}.stats-grid{grid-template-columns:repeat(2,1fr)!important;}.avatar-option{font-size:22px!important;padding:6px!important;}}
+
+/* Profile Header */
+.profile-header{padding:25px;background:rgba(255,255,255,0.02);border-radius:12px;margin-bottom:25px;border:1px solid rgba(255,255,255,0.05);}
+.current-avatar{font-size:75px;cursor:pointer;transition:transform 0.2s;}
 .current-avatar:hover{transform:scale(1.1);}
-.avatar-grid{display:none;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:15px;padding:15px;background:rgba(255,255,255,0.03);border-radius:10px;}
+.current-avatar img{width:90px;height:90px;border-radius:50%;object-fit:cover;border:3px solid #d9b78a;}
+.edit-hint{font-size:12px;color:rgba(255,255,255,0.4);margin-top:8px;}
+h2{color:#d9b78a;margin:15px 0 5px 0;font-size:22px;font-weight:600;}
+.user-email{color:rgba(255,255,255,0.45);margin:0;font-size:13px;}
+.avatar-grid{display:none;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:15px;padding:15px;background:rgba(0,0,0,0.2);border-radius:10px;}
 .avatar-grid.show{display:flex;}
-.avatar-option{font-size:28px;padding:8px;border-radius:10px;cursor:pointer;background:transparent;border:2px solid transparent;transition:all 0.2s;}
+.avatar-option{font-size:26px;padding:8px;border-radius:10px;cursor:pointer;background:transparent;border:2px solid transparent;transition:all 0.2s;}
 .avatar-option:hover{background:rgba(255,255,255,0.1);}
 .avatar-option.selected{border-color:#d9b78a;background:rgba(217,183,138,0.2);}
-.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:20px 0;}
-.stat-box{background:rgba(255,255,255,0.03);padding:15px;border-radius:10px;}
-.stat-value{font-size:28px;color:#d9b78a;font-weight:bold;}
-.stat-label{font-size:12px;color:rgba(255,255,255,0.5);text-transform:uppercase;margin-top:5px;}
-.section-title{color:#b68b5a;font-size:12px;margin:20px 0 10px 0;text-transform:uppercase;letter-spacing:1px;}
-.info-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid rgba(255,255,255,0.05);}
-.info-label{color:rgba(255,255,255,0.5);}
-.info-value{color:#cfc5b8;}
-.btn{width:100%;padding:12px;margin-top:10px;border-radius:10px;border:none;background:linear-gradient(90deg,#b68b5a,#d9b78a);color:#fff;font-weight:600;cursor:pointer;transition:transform 0.2s;}
-.btn:hover{transform:scale(1.02);}
-.btn-secondary{background:#3a3632;}
-.edit-hint{font-size:12px;color:rgba(255,255,255,0.4);margin-top:5px;}
-.footer{text-align:center;padding:20px 15px;margin-top:20px;border-top:1px solid rgba(255,255,255,0.1);font-size:12px;color:rgba(255,255,255,0.4);}
-.footer-line{margin:5px 0;}
+
+/* Section Title */
+.section-title{color:rgba(255,255,255,0.5);font-size:11px;margin:25px 0 12px 0;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;}
+
+/* Stats */
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:15px 0;}
+.stat-box{background:rgba(255,255,255,0.02);padding:18px 12px;border-radius:12px;border:1px solid rgba(255,255,255,0.05);}
+.stat-value{font-size:26px;color:#d9b78a;font-weight:700;}
+.stat-label{font-size:10px;color:rgba(255,255,255,0.45);text-transform:uppercase;letter-spacing:0.5px;margin-top:5px;}
+
+/* Info Row */
+.info-section{background:rgba(255,255,255,0.02);border-radius:12px;padding:5px 15px;border:1px solid rgba(255,255,255,0.05);}
+.info-row{display:flex;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.05);}
+.info-row:last-child{border-bottom:none;}
+.info-label{color:rgba(255,255,255,0.45);font-size:13px;}
+.info-value{color:#cfc5b8;font-size:13px;font-weight:500;}
+
+/* Buttons */
+.btn{width:100%;padding:13px;margin-top:12px;border-radius:10px;border:none;background:linear-gradient(135deg,#b68b5a,#d9b78a);color:#fff;font-weight:600;cursor:pointer;font-size:14px;transition:all 0.2s;}
+.btn:hover{transform:translateY(-2px);box-shadow:0 5px 20px rgba(182,139,90,0.3);}
+.btn-secondary{background:rgba(255,255,255,0.08);}
+.btn-secondary:hover{background:rgba(255,255,255,0.12);box-shadow:none;transform:translateY(-1px);}
+
+/* Footer */
+.footer{text-align:center;padding:20px 0 0 0;margin-top:25px;border-top:1px solid rgba(255,255,255,0.08);font-size:11px;color:rgba(255,255,255,0.35);}
+.footer-line{margin:4px 0;}
 </style>
 </head>
 <body>
 <div class="card">
-  <div class="avatar-section">
+  <div class="profile-header">
     <div class="current-avatar" id="currentAvatar" onclick="toggleAvatarGrid()" title="Click to change avatar">😎</div>
-    <div class="edit-hint">Click avatar to change</div>
+    <div class="edit-hint">Click to change avatar</div>
     <div class="avatar-grid" id="avatarGrid"></div>
+    <h2 id="userName">Player Name</h2>
+    <p class="user-email" id="userEmail">email@example.com</p>
   </div>
-  
-  <h2 id="userName">Player Name</h2>
-  <p style="color:rgba(255,255,255,0.5);margin:0;" id="userEmail">email@example.com</p>
-  
-  <div class="section-title">📊 Your Stats</div>
+
+  <div class="section-title">Your Statistics</div>
   <div class="stats-grid">
     <div class="stat-box"><div class="stat-value" id="statGames">0</div><div class="stat-label">Games Played</div></div>
     <div class="stat-box"><div class="stat-value" id="statWins">0</div><div class="stat-label">Perfect Scores</div></div>
     <div class="stat-box"><div class="stat-value" id="statStreak">0</div><div class="stat-label">Best Streak</div></div>
     <div class="stat-box"><div class="stat-value" id="statScore">0</div><div class="stat-label">Total Points</div></div>
   </div>
-  
-  <div class="section-title">📋 Account Info</div>
-  <div class="info-row"><span class="info-label">Member Since</span><span class="info-value" id="memberSince">-</span></div>
-  <div class="info-row"><span class="info-label">Avg Score</span><span class="info-value" id="avgScore">-</span></div>
-  
+
+  <div class="section-title">Account Information</div>
+  <div class="info-section">
+    <div class="info-row"><span class="info-label">Member Since</span><span class="info-value" id="memberSince">-</span></div>
+    <div class="info-row"><span class="info-label">Average Score</span><span class="info-value" id="avgScore">-</span></div>
+  </div>
+
   <button class="btn" onclick="window.location.href='dashboard.html'">← Back to Dashboard</button>
-  <button class="btn btn-secondary" onclick="resetStats()">🔄 Reset Stats</button>
+  <button class="btn btn-secondary" onclick="resetStats()">Reset Statistics</button>
 
   <div class="footer">
-    <div class="footer-line">© 2024 QuizHub | BSIT - WMAD</div>
+    <div class="footer-line">© 2025 QuizHub | BSIT - WMAD</div>
     <div class="footer-line">Isabela State University</div>
-    <div class="footer-line">Made with ❤️ by Christopher, Ashlee & Marjorie</div>
   </div>
 </div>
 
@@ -78,8 +95,8 @@ const userEmail = localStorage.getItem('sn_current');
 document.getElementById('userName').innerText = userData ? userData.name : 'Player';
 document.getElementById('userEmail').innerText = userEmail || '';
 const currentAvatarEl = document.getElementById('currentAvatar');
-const userAvatar = userData ? userData.avatar : '😎';
-currentAvatarEl.innerHTML = renderAvatar(userAvatar, 80);
+const userAvatar = userData ? userData.avatar : 'avatar1.jpg';
+currentAvatarEl.innerHTML = `<img src="${userAvatar}" alt="Avatar">`;
 
 // Display stats
 if(userData && userData.stats){
@@ -99,10 +116,12 @@ document.getElementById('memberSince').innerText = userData && userData.joinDate
 
 // Avatar grid
 const avatarGrid = document.getElementById('avatarGrid');
+
+// Add all image avatars
 AVATARS.forEach(avatar => {
   const btn = document.createElement('span');
-  btn.className = 'avatar-option' + (avatar === (userData ? userData.avatar : '😎') ? ' selected' : '');
-  btn.innerHTML = renderAvatar(avatar, 28);
+  btn.className = 'avatar-option' + (avatar === (userData ? userData.avatar : 'avatar1.jpg') ? ' selected' : '');
+  btn.innerHTML = `<img src="${avatar}" alt="Avatar" style="width:36px;height:36px;border-radius:50%;object-fit:cover;">`;
   btn.dataset.avatar = avatar;
   btn.onclick = () => changeAvatar(avatar);
   avatarGrid.appendChild(btn);
@@ -114,7 +133,7 @@ function toggleAvatarGrid(){
 
 function changeAvatar(avatar){
   updateAvatar(avatar);
-  document.getElementById('currentAvatar').innerHTML = renderAvatar(avatar, 80);
+  document.getElementById('currentAvatar').innerHTML = `<img src="${avatar}" alt="Avatar">`;
   document.querySelectorAll('.avatar-option').forEach(el => {
     el.classList.toggle('selected', el.dataset.avatar === avatar);
   });

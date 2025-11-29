@@ -6,50 +6,64 @@
   <title>Join a Game - QuizHub</title>
   <style>
 *{box-sizing:border-box;}
-body{font-family:Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;justify-content:center;align-items:center;padding:20px 15px;margin:0;min-height:100vh;}
-.card{background:#24201c;padding:30px;border-radius:14px;width:100%;max-width:450px;box-shadow:0 6px 30px rgba(2,2,2,0.6);text-align:center;}
-h2{color:#d9b78a;margin-bottom:10px;font-size:clamp(20px,5vw,24px);}
-.subtitle{color:rgba(255,255,255,0.5);font-size:13px;margin-bottom:25px;}
-.code-box{background:linear-gradient(135deg,#3a3632,#24201c);padding:20px;border-radius:12px;margin:15px 0;border:1px solid rgba(255,255,255,0.05);}
-.code-input{font-size:clamp(22px,6vw,32px);letter-spacing:clamp(6px,2vw,12px);text-align:center;width:100%;padding:15px 10px;border-radius:10px;border:2px solid rgba(255,255,255,0.05);background:rgba(255,255,255,0.02);color:#d9b78a;font-family:monospace;text-transform:uppercase;}
-.code-input::placeholder{letter-spacing:4px;font-size:14px;color:rgba(255,255,255,0.3);}
-.code-input:focus{border-color:rgba(182,139,90,0.5);outline:none;}
-.error-msg{color:#ff6b6b;margin-top:12px;font-size:13px;display:none;}
-.loading{display:none;margin-top:15px;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;justify-content:center;align-items:center;padding:20px 15px;margin:0;min-height:100vh;}
+.card{background:#24201c;padding:35px;border-radius:16px;width:100%;max-width:450px;box-shadow:0 8px 40px rgba(0,0,0,0.5);text-align:center;}
+@media(max-width:480px){.card{padding:25px 20px;}.code-box{padding:18px;}.code-input{padding:14px 10px;font-size:24px!important;letter-spacing:8px!important;}.info-box{padding:15px;}}
+
+/* Back Link */
+.back-link{color:rgba(255,255,255,0.5);text-decoration:none;font-size:13px;display:inline-flex;align-items:center;gap:6px;margin-bottom:20px;transition:color 0.2s;}
+.back-link:hover{color:#d9b78a;}
+
+/* Header */
+.page-header{margin-bottom:25px;}
+h1{color:#d9b78a;margin:0 0 8px 0;font-size:24px;font-weight:600;}
+.subtitle{color:rgba(255,255,255,0.5);font-size:13px;margin:0;}
+
+/* Code Box */
+.code-box{background:rgba(255,255,255,0.02);padding:25px;border-radius:12px;margin:20px 0;border:1px solid rgba(255,255,255,0.05);}
+.code-input{font-size:clamp(26px,6vw,32px);letter-spacing:clamp(8px,2vw,12px);text-align:center;width:100%;padding:16px 12px;border-radius:10px;border:2px solid rgba(255,255,255,0.08);background:rgba(0,0,0,0.2);color:#d9b78a;font-family:monospace;text-transform:uppercase;transition:border-color 0.2s;}
+.code-input::placeholder{letter-spacing:4px;font-size:14px;color:rgba(255,255,255,0.25);}
+.code-input:focus{border-color:#d9b78a;outline:none;}
+.error-msg{color:#ff6b6b;margin-top:15px;font-size:13px;display:none;}
+.loading{display:none;margin-top:18px;}
 .loading.show{display:block;}
-.spinner{border:3px solid rgba(255,255,255,0.1);border-top:3px solid #d9b78a;border-radius:50%;width:30px;height:30px;animation:spin 1s linear infinite;margin:0 auto;}
+.spinner{border:3px solid rgba(255,255,255,0.08);border-top:3px solid #d9b78a;border-radius:50%;width:32px;height:32px;animation:spin 1s linear infinite;margin:0 auto;}
 @keyframes spin{0%{transform:rotate(0deg);}100%{transform:rotate(360deg);}}
-.btn{width:100%;padding:14px;margin:8px 0;border-radius:10px;border:none;background:linear-gradient(90deg,#4ade80,#22c55e);color:#fff;font-weight:600;cursor:pointer;transition:all 0.2s;font-size:16px;min-height:48px;}
-.btn:hover{transform:scale(1.02);}
-.btn:disabled{background:#3a3632;color:rgba(255,255,255,0.3);cursor:not-allowed;transform:none;}
-.info-box{background:rgba(255,255,255,0.02);padding:15px;border-radius:10px;margin-top:20px;text-align:left;}
-.info-box h4{color:#b68b5a;margin-bottom:10px;font-size:12px;text-transform:uppercase;letter-spacing:1px;}
-.info-box ul{color:rgba(255,255,255,0.6);padding-left:18px;margin:0;font-size:12px;}
-.info-box li{margin:5px 0;}
-.back-link{color:#b68b5a;text-decoration:none;font-size:13px;display:inline-block;margin-bottom:15px;}
-.back-link:hover{text-decoration:underline;}
-@media(max-width:480px){.card{padding:20px 15px;}.code-box{padding:15px;}.code-input{padding:12px 8px;}.info-box{padding:12px;}}
+
+/* Button */
+.btn{width:100%;padding:15px;margin:8px 0;border-radius:10px;border:none;background:linear-gradient(135deg,#4ade80,#22c55e);color:#fff;font-weight:600;cursor:pointer;transition:all 0.2s;font-size:15px;min-height:50px;}
+.btn:hover{transform:translateY(-2px);box-shadow:0 5px 20px rgba(74,222,128,0.3);}
+.btn:disabled{background:rgba(255,255,255,0.08);color:rgba(255,255,255,0.3);cursor:not-allowed;transform:none;box-shadow:none;}
+
+/* Info Box */
+.info-box{background:rgba(255,255,255,0.02);padding:18px;border-radius:12px;margin-top:25px;text-align:left;border:1px solid rgba(255,255,255,0.05);}
+.info-box h4{color:rgba(255,255,255,0.5);margin:0 0 12px 0;font-size:11px;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;}
+.info-box ul{color:rgba(255,255,255,0.55);padding-left:18px;margin:0;font-size:13px;line-height:1.7;}
+.info-box li{margin:6px 0;}
   </style>
 </head>
 <body>
 <div class="card">
   <a href="dashboard.html" class="back-link">← Back to Dashboard</a>
-  <h2>🔗 Join a Game</h2>
-  <p class="subtitle">Enter the room code shared by the host</p>
+
+  <div class="page-header">
+    <h1>Join a Game</h1>
+    <p class="subtitle">Enter the room code shared by the host</p>
+  </div>
 
   <div class="code-box">
     <input type="text" class="code-input" id="roomCodeInput" placeholder="ENTER CODE" maxlength="6" autocomplete="off">
     <p class="error-msg" id="errorMsg">Room not found. Check the code and try again.</p>
     <div class="loading" id="loading">
       <div class="spinner"></div>
-      <p style="color:rgba(255,255,255,0.5); margin-top:10px;font-size:13px;">Joining room...</p>
+      <p style="color:rgba(255,255,255,0.45); margin-top:12px;font-size:13px;">Joining room...</p>
     </div>
   </div>
 
-  <button class="btn" id="joinBtn" onclick="joinRoom()" disabled>🎮 Join Game</button>
+  <button class="btn" id="joinBtn" onclick="joinRoom()" disabled>Join Game</button>
 
   <div class="info-box">
-    <h4>📋 How to Join</h4>
+    <h4>How to Join</h4>
     <ul>
       <li>Get the 6-character room code from the host</li>
       <li>Enter the code above (case doesn't matter)</li>

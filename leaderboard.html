@@ -6,56 +6,74 @@
 <title>Leaderboard - QuizHub</title>
 <style>
 *{box-sizing:border-box;}
-body{font-family:Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;justify-content:center;align-items:flex-start;padding:20px 15px;margin:0;min-height:100vh;}
-.card{background:#24201c;padding:30px;border-radius:14px;width:100%;max-width:750px;box-shadow:0 6px 30px rgba(2,2,2,0.6);}
-@media(max-width:600px){.card{padding:20px;}.mode-tabs{flex-wrap:wrap;}.mode-tab{padding:8px 15px;font-size:12px;}.cat-tabs{gap:4px;}.cat-tab{padding:5px 10px;font-size:11px;}.entry{padding:10px;}.entry-score{font-size:16px;}}
-h2{color:#d9b78a;margin-bottom:15px;text-align:center;}
-.mode-tabs{display:flex;justify-content:center;gap:10px;margin-bottom:15px;}
-.mode-tab{padding:10px 20px;border-radius:10px;border:none;background:rgba(255,255,255,0.05);color:#cfc5b8;cursor:pointer;font-size:14px;font-weight:600;transition:all 0.2s;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;justify-content:center;align-items:flex-start;padding:20px 15px;margin:0;min-height:100vh;}
+.card{background:#24201c;padding:35px;border-radius:16px;width:100%;max-width:700px;box-shadow:0 8px 40px rgba(0,0,0,0.5);}
+@media(max-width:600px){.card{padding:20px;}.mode-tabs{flex-wrap:wrap;gap:6px;}.mode-tab{padding:10px 16px;font-size:12px;}.cat-tabs{gap:5px;}.cat-tab{padding:6px 12px;font-size:11px;}.leaderboard-item{padding:12px;}.score-value{font-size:16px;}}
+
+/* Header */
+.page-header{text-align:center;margin-bottom:25px;padding-bottom:20px;border-bottom:1px solid rgba(255,255,255,0.08);}
+h1{color:#d9b78a;margin:0;font-size:24px;font-weight:600;}
+.page-subtitle{color:rgba(255,255,255,0.5);font-size:13px;margin-top:8px;}
+
+/* Mode Tabs */
+.mode-tabs{display:flex;justify-content:center;gap:10px;margin-bottom:20px;}
+.mode-tab{padding:12px 22px;border-radius:10px;border:none;background:rgba(255,255,255,0.05);color:#cfc5b8;cursor:pointer;font-size:13px;font-weight:600;transition:all 0.2s;}
 .mode-tab:hover{background:rgba(255,255,255,0.1);}
-.mode-tab.active{background:linear-gradient(90deg,#b65a8b,#d98ad9);color:#fff;}
-.cat-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:20px;justify-content:center;}
-.cat-tab{padding:6px 12px;border-radius:15px;border:none;background:rgba(255,255,255,0.05);color:#cfc5b8;cursor:pointer;font-size:12px;transition:all 0.2s;}
-.cat-tab:hover{background:rgba(255,255,255,0.1);}
-.cat-tab.active{background:linear-gradient(90deg,#b68b5a,#d9b78a);color:#fff;}
-.category-header{display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:15px;}
-.category-icon{font-size:24px;}
+.mode-tab.active{background:linear-gradient(135deg,#b65a8b,#d98ad9);color:#fff;box-shadow:0 4px 15px rgba(182,90,139,0.3);}
+
+/* Category Tabs */
+.cat-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:20px;justify-content:center;}
+.cat-tab{padding:8px 14px;border-radius:20px;border:1px solid rgba(255,255,255,0.08);background:transparent;color:rgba(255,255,255,0.6);cursor:pointer;font-size:12px;transition:all 0.2s;}
+.cat-tab:hover{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.15);}
+.cat-tab.active{background:linear-gradient(135deg,#b68b5a,#d9b78a);color:#fff;border-color:transparent;}
+
+/* Category Header */
+.category-header{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:20px;padding:15px;background:rgba(255,255,255,0.02);border-radius:12px;}
+.category-icon{font-size:26px;}
 .category-name{color:#d9b78a;font-size:18px;font-weight:600;}
-.mode-badge{font-size:12px;padding:4px 10px;border-radius:10px;background:rgba(182,90,139,0.3);color:#d98ad9;}
+.mode-badge{font-size:11px;padding:5px 12px;border-radius:20px;background:rgba(182,90,139,0.2);color:#d98ad9;font-weight:500;}
+
+/* Leaderboard List */
 .leaderboard-list{list-style:none;padding:0;margin:0;}
-.leaderboard-item{display:flex;align-items:center;padding:12px;background:rgba(255,255,255,0.03);border-radius:10px;margin-bottom:8px;transition:background 0.2s;}
-.leaderboard-item:hover{background:rgba(255,255,255,0.06);}
-.leaderboard-item.current-player{background:rgba(182,139,90,0.15);border:1px solid rgba(182,139,90,0.3);}
-.rank{width:35px;font-size:18px;font-weight:bold;color:#d9b78a;}
+.leaderboard-item{display:flex;align-items:center;padding:14px;background:rgba(255,255,255,0.02);border-radius:12px;margin-bottom:8px;transition:all 0.2s;border:1px solid rgba(255,255,255,0.03);}
+.leaderboard-item:hover{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.08);}
+.leaderboard-item.current-player{background:rgba(182,139,90,0.1);border:1px solid rgba(182,139,90,0.25);}
+.rank{width:40px;font-size:18px;font-weight:700;color:#d9b78a;}
 .rank-1{color:#ffd700;}
 .rank-2{color:#c0c0c0;}
 .rank-3{color:#cd7f32;}
-.player-avatar{font-size:24px;margin-right:10px;}
+.player-avatar{font-size:24px;margin-right:12px;}
 .player-info{flex:1;}
-.player-name{font-weight:600;}
-.player-date{font-size:11px;color:rgba(255,255,255,0.4);}
+.player-name{font-weight:600;font-size:14px;}
+.player-date{font-size:11px;color:rgba(255,255,255,0.35);margin-top:2px;}
 .player-score{text-align:right;}
-.score-value{font-size:18px;font-weight:bold;color:#8ad9d9;}
-.score-detail{font-size:11px;color:rgba(255,255,255,0.4);}
-.no-scores{text-align:center;padding:30px;color:rgba(255,255,255,0.4);}
-.btn{width:100%;padding:12px;margin-top:15px;border-radius:10px;border:none;background:linear-gradient(90deg,#b68b5a,#d9b78a);color:#fff;cursor:pointer;font-weight:600;transition:transform 0.2s;}
-.btn:hover{transform:scale(1.02);}
-.footer{text-align:center;padding:20px 15px;margin-top:20px;border-top:1px solid rgba(255,255,255,0.1);font-size:12px;color:rgba(255,255,255,0.4);}
-.footer-line{margin:5px 0;}
+.score-value{font-size:18px;font-weight:700;color:#8ad9d9;}
+.score-detail{font-size:11px;color:rgba(255,255,255,0.35);margin-top:2px;}
+.no-scores{text-align:center;padding:40px 20px;color:rgba(255,255,255,0.4);background:rgba(255,255,255,0.02);border-radius:12px;font-size:14px;}
+
+/* Button */
+.btn{width:100%;padding:14px;margin-top:20px;border-radius:10px;border:none;background:linear-gradient(135deg,#b68b5a,#d9b78a);color:#fff;cursor:pointer;font-weight:600;font-size:14px;transition:all 0.2s;}
+.btn:hover{transform:translateY(-2px);box-shadow:0 5px 20px rgba(182,139,90,0.3);}
+
+/* Footer */
+.footer{text-align:center;padding:20px 0 0 0;margin-top:25px;border-top:1px solid rgba(255,255,255,0.08);font-size:11px;color:rgba(255,255,255,0.35);}
+.footer-line{margin:4px 0;}
 </style>
 </head>
 <body>
 <div class="card">
-  <h2>🏆 Leaderboard</h2>
+  <div class="page-header">
+    <h1>Leaderboard</h1>
+    <p class="page-subtitle">Top players across all categories</p>
+  </div>
   <div class="mode-tabs" id="modeTabs"></div>
   <div class="cat-tabs" id="catTabs"></div>
   <div id="lbArea"></div>
   <button class="btn" onclick="window.location.href='dashboard.html'">← Back to Dashboard</button>
 
   <div class="footer">
-    <div class="footer-line">© 2024 QuizHub | BSIT - WMAD</div>
+    <div class="footer-line">© 2025 QuizHub | BSIT - WMAD</div>
     <div class="footer-line">Isabela State University</div>
-    <div class="footer-line">Made with ❤️ by Christopher, Ashlee & Marjorie</div>
   </div>
 </div>
 
@@ -65,7 +83,15 @@ h2{color:#d9b78a;margin-bottom:15px;text-align:center;}
 const userData = getCurrentUserData();
 const PLAYER_NAME = userData ? userData.name : 'Player';
 
-const socket = io();
+// Make socket optional (for local testing)
+let socket = null;
+try {
+  if (typeof io !== 'undefined') {
+    socket = io();
+  }
+} catch(e) {
+  console.log('Socket not available, using local leaderboard only');
+}
 
 const MODES_INFO = {
   classic: { name: "Classic", icon: "🎮" },
@@ -114,22 +140,24 @@ function getLeaderboard(mode, cat){
   return combined.sort((a, b) => b.score - a.score);
 }
 
-// Request all leaderboards from server on connect
-socket.on('connect', () => {
-  socket.emit('getAllLeaderboards');
-});
+// Request all leaderboards from server on connect (only if socket exists)
+if (socket) {
+  socket.on('connect', () => {
+    socket.emit('getAllLeaderboards');
+  });
 
-// Receive all leaderboards
-socket.on('allLeaderboardsData', (data) => {
-  globalLeaderboards = data;
-  renderLeaderboard();
-});
+  // Receive all leaderboards
+  socket.on('allLeaderboardsData', (data) => {
+    globalLeaderboards = data;
+    renderLeaderboard();
+  });
 
-// Receive updated leaderboard
-socket.on('leaderboardUpdated', ({ key, leaderboard }) => {
-  globalLeaderboards[key] = leaderboard;
-  renderLeaderboard();
-});
+  // Receive updated leaderboard
+  socket.on('leaderboardUpdated', ({ key, leaderboard }) => {
+    globalLeaderboards[key] = leaderboard;
+    renderLeaderboard();
+  });
+}
 
 function renderModeTabs(){
   const modeTabsEl = document.getElementById('modeTabs');

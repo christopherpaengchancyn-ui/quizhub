@@ -2,32 +2,43 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Choose Difficulty - Single Player</title>
 <style>
-body{font-family:Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;justify-content:center;align-items:center;height:100vh;margin:0;}
-.card{background:#24201c;padding:40px;border-radius:14px;width:400px;text-align:center;box-shadow:0 6px 30px rgba(2,2,2,0.6);}
-h2{color:#d9b78a;margin-bottom:10px;}
-.subtitle{color:rgba(255,255,255,0.5);font-size:14px;margin-bottom:20px;}
-.btn{width:80%;padding:12px;margin:10px 0;border-radius:10px;border:none;background:linear-gradient(90deg,#5a8bb6,#8ad9d9);color:#fff;font-weight:600;cursor:pointer;transition:transform 0.2s;}
-.btn:hover{transform:scale(1.02);}
-.btn-back{background:#3a3632;}
-.difficulty-info{font-size:12px;color:rgba(255,255,255,0.4);margin-top:5px;}
+*{box-sizing:border-box;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;padding:15px;}
+.card{background:#24201c;padding:40px;border-radius:16px;width:100%;max-width:420px;text-align:center;box-shadow:0 8px 40px rgba(0,0,0,0.5);}
+@media(max-width:480px){.card{padding:30px 25px;}}
+
+/* Header */
+.page-header{margin-bottom:25px;}
+h1{color:#d9b78a;margin:0 0 8px 0;font-size:24px;font-weight:600;}
+.subtitle{color:rgba(255,255,255,0.5);font-size:13px;margin:0;}
+
+/* Buttons */
+.btn{width:85%;padding:14px;margin:10px 0 0 0;border-radius:10px;border:none;background:linear-gradient(135deg,#5a8bb6,#8ad9d9);color:#fff;font-weight:600;cursor:pointer;transition:all 0.2s;font-size:14px;}
+.btn:hover{transform:translateY(-2px);box-shadow:0 5px 20px rgba(90,139,182,0.3);}
+.btn-back{background:rgba(255,255,255,0.08);margin-top:20px;}
+.btn-back:hover{background:rgba(255,255,255,0.12);box-shadow:none;}
+.difficulty-info{font-size:11px;color:rgba(255,255,255,0.35);margin-top:6px;}
 </style>
 </head>
 <body>
 <div class="card">
-  <h2>⚡ Single Player</h2>
-  <p class="subtitle">Choose your difficulty level</p>
-  
+  <div class="page-header">
+    <h1>Single Player</h1>
+    <p class="subtitle">Choose your difficulty level</p>
+  </div>
+
   <button class="btn" onclick="start('Easy')">Easy</button>
   <div class="difficulty-info">3 Questions • 30 sec each</div>
-  
+
   <button class="btn" onclick="start('Medium')">Medium</button>
   <div class="difficulty-info">2 Questions • 30 sec each</div>
-  
+
   <button class="btn" onclick="start('Hard')">Hard</button>
   <div class="difficulty-info">1 Question • 30 sec each</div>
-  
+
   <button class="btn btn-back" onclick="window.location.href='dashboard.html'">← Back</button>
 </div>
 

@@ -6,42 +6,56 @@
 <title>Quiz - QuizHub</title>
 <style>
 *{box-sizing:border-box;}
-body{font-family:Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;padding:15px;}
-.card{background:#24201c;padding:30px;border-radius:14px;width:100%;max-width:650px;box-shadow:0 6px 30px rgba(2,2,2,0.6);}
-@media(max-width:600px){.card{padding:20px;}.header{flex-direction:column;align-items:flex-start;}.options-grid{grid-template-columns:1fr!important;}.question{font-size:18px!important;}h2{font-size:18px;}.stats-row{flex-wrap:wrap;}.stat-item{min-width:60px;}}
-h2{color:#d9b78a;margin-bottom:15px;}
+body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;padding:15px;}
+.card{background:#24201c;padding:30px;border-radius:16px;width:100%;max-width:650px;box-shadow:0 8px 40px rgba(0,0,0,0.5);}
+@media(max-width:600px){.card{padding:22px 18px;}.header{flex-direction:column;align-items:flex-start;}.options-grid{grid-template-columns:1fr!important;}h2{font-size:18px;}.stats-bar{flex-wrap:wrap;gap:8px;}.stat{padding:7px 10px;}}
+
+/* Header */
+h2{color:#d9b78a;margin-bottom:15px;font-weight:600;}
 .header{display:flex;justify-content:space-between;align-items:center;margin-bottom:15px;flex-wrap:wrap;gap:10px;}
-.mode-badge{display:inline-block;padding:4px 10px;border-radius:20px;font-size:12px;}
-.mode-classic{background:linear-gradient(90deg,#5a8bb6,#8ad9d9);}
-.mode-survival{background:linear-gradient(90deg,#ff6b6b,#ff8e8e);}
-.mode-speed{background:linear-gradient(90deg,#f7df1e,#ffeb3b);}
-.cat-badge{background:rgba(255,255,255,0.1);padding:4px 10px;border-radius:20px;font-size:12px;}
-.stats-bar{display:flex;gap:15px;margin-bottom:15px;flex-wrap:wrap;}
-.stat{background:rgba(255,255,255,0.05);padding:8px 12px;border-radius:8px;font-size:12px;}
-.stat-value{color:#d9b78a;font-weight:bold;}
+.mode-badge{display:inline-block;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:500;}
+.mode-classic{background:linear-gradient(135deg,#5a8bb6,#8ad9d9);}
+.mode-survival{background:linear-gradient(135deg,#ff6b6b,#ff8e8e);}
+.mode-speed{background:linear-gradient(135deg,#f7df1e,#ffeb3b);}
+.cat-badge{background:rgba(255,255,255,0.08);padding:5px 12px;border-radius:20px;font-size:12px;}
+
+/* Stats */
+.stats-bar{display:flex;gap:12px;margin-bottom:15px;flex-wrap:wrap;}
+.stat{background:rgba(255,255,255,0.04);padding:9px 14px;border-radius:10px;font-size:12px;border:1px solid rgba(255,255,255,0.05);}
+.stat-value{color:#d9b78a;font-weight:600;}
 .streak-fire{color:#ff6b6b;animation:pulse 0.5s ease-in-out;}
 @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.2);}}
-.answers{display:flex;flex-direction:column;gap:10px;margin-bottom:12px;}
-.choice{padding:14px;border-radius:10px;border:2px solid rgba(255,255,255,0.05);background:transparent;color:#cfc5b8;cursor:pointer;text-align:left;transition:all 0.2s;font-size:15px;}
-.choice:hover{background:rgba(255,255,255,0.05);border-color:rgba(255,255,255,0.1);}
-.muted{color:rgba(255,255,255,0.5);}
-.timer-bar{height:8px;background:#3a3632;border-radius:4px;margin-bottom:15px;overflow:hidden;}
-.timer-fill{height:100%;background:linear-gradient(90deg,#5a8bb6,#8ad9d9);border-radius:4px;transition:width 0.1s linear;}
-.timer-danger{background:linear-gradient(90deg,#ff6b6b,#ff8e8e)!important;}
-.progress-bar{height:4px;background:#3a3632;border-radius:2px;margin-bottom:10px;}
+
+/* Answers */
+.answers{display:flex;flex-direction:column;gap:10px;margin-bottom:15px;}
+.choice{padding:15px;border-radius:12px;border:1px solid rgba(255,255,255,0.08);background:rgba(255,255,255,0.02);color:#cfc5b8;cursor:pointer;text-align:left;transition:all 0.2s;font-size:15px;}
+.choice:hover{background:rgba(255,255,255,0.06);border-color:rgba(255,255,255,0.12);}
+.muted{color:rgba(255,255,255,0.45);}
+
+/* Timer */
+.timer-bar{height:8px;background:rgba(255,255,255,0.08);border-radius:4px;margin-bottom:15px;overflow:hidden;}
+.timer-fill{height:100%;background:linear-gradient(135deg,#5a8bb6,#8ad9d9);border-radius:4px;transition:width 0.1s linear;}
+.timer-danger{background:linear-gradient(135deg,#ff6b6b,#ff8e8e)!important;}
+
+/* Progress */
+.progress-bar{height:4px;background:rgba(255,255,255,0.08);border-radius:2px;margin-bottom:12px;}
 .progress-fill{height:100%;background:#d9b78a;border-radius:2px;transition:width 0.3s;}
-.resultItem{margin-bottom:10px;padding:12px;background:rgba(255,0,0,0.1);border-radius:8px;text-align:left;}
-.btn{padding:12px 16px;border-radius:10px;border:none;background:linear-gradient(90deg,#5a8bb6,#8ad9d9);color:#fff;cursor:pointer;font-weight:600;margin:5px;transition:transform 0.2s;}
-.btn:hover{transform:scale(1.02);}
-.score-display{font-size:28px;color:#8ad9d9;margin:15px 0;}
-.points-popup{position:fixed;font-size:24px;font-weight:bold;color:#4ade80;animation:floatUp 1s ease-out forwards;pointer-events:none;}
+.resultItem{margin-bottom:10px;padding:14px;background:rgba(255,0,0,0.08);border-radius:10px;text-align:left;border:1px solid rgba(255,0,0,0.1);}
+
+/* Buttons */
+.btn{padding:13px 18px;border-radius:10px;border:none;background:linear-gradient(135deg,#5a8bb6,#8ad9d9);color:#fff;cursor:pointer;font-weight:600;margin:5px;transition:all 0.2s;font-size:14px;}
+.btn:hover{transform:translateY(-2px);box-shadow:0 5px 20px rgba(90,139,182,0.3);}
+.score-display{font-size:28px;color:#8ad9d9;margin:18px 0;font-weight:700;}
+.points-popup{position:fixed;font-size:24px;font-weight:700;color:#4ade80;animation:floatUp 1s ease-out forwards;pointer-events:none;}
 @keyframes floatUp{0%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-50px);}}
+
+/* Game Over */
 .game-over{text-align:center;}
 .game-over h2{color:#ff6b6b;}
-.final-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:20px 0;}
-.final-stat{background:rgba(255,255,255,0.05);padding:15px;border-radius:10px;}
-.final-stat-value{font-size:24px;color:#d9b78a;font-weight:bold;}
-.final-stat-label{font-size:12px;color:rgba(255,255,255,0.5);}
+.final-stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin:22px 0;}
+.final-stat{background:rgba(255,255,255,0.02);padding:18px;border-radius:12px;border:1px solid rgba(255,255,255,0.05);}
+.final-stat-value{font-size:24px;color:#d9b78a;font-weight:700;}
+.final-stat-label{font-size:12px;color:rgba(255,255,255,0.45);margin-top:4px;}
 </style>
 </head>
 <body>
@@ -50,16 +64,16 @@ h2{color:#d9b78a;margin-bottom:15px;}
   <div id="quizScreen">
     <div class="header">
       <div>
-        <span class="mode-badge mode-classic" id="modeBadge">🎮 Classic</span>
-        <span class="cat-badge" id="catBadge">📚 Category</span>
+        <span class="mode-badge mode-classic" id="modeBadge">Classic</span>
+        <span class="cat-badge" id="catBadge">Category</span>
       </div>
       <div class="stat">Q: <span id="qNum">1</span>/<span id="qTotal">10</span></div>
     </div>
     <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
     <div class="stats-bar">
-      <div class="stat">🏆 Points: <span class="stat-value" id="pointsDisplay">0</span></div>
-      <div class="stat">🔥 Streak: <span class="stat-value" id="streakDisplay">0</span></div>
-      <div class="stat">⏱️ <span id="timerText">30s</span></div>
+      <div class="stat">Points: <span class="stat-value" id="pointsDisplay">0</span></div>
+      <div class="stat">Streak: <span class="stat-value" id="streakDisplay">0</span></div>
+      <div class="stat"><span id="timerText">30s</span></div>
     </div>
     <div class="timer-bar"><div class="timer-fill" id="timerFill" style="width:100%"></div></div>
     <h2 id="qTitle">Loading question...</h2>
@@ -68,7 +82,7 @@ h2{color:#d9b78a;margin-bottom:15px;}
 
   <!-- Game Over Screen (Survival) -->
   <div id="gameOverScreen" style="display:none;" class="game-over">
-    <h2>💀 Game Over!</h2>
+    <h2>Game Over!</h2>
     <p class="muted">You answered incorrectly in Survival mode</p>
     <div class="final-stats">
       <div class="final-stat"><div class="final-stat-value" id="goQuestions">0</div><div class="final-stat-label">Questions Answered</div></div>
