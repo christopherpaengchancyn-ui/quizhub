@@ -90,6 +90,7 @@ h1{color:#d9b78a;margin:0 0 18px 0;text-align:center;font-size:24px;font-weight:
     let players = {};
     let finishedPlayers = 0;
     let totalPlayers = 0;
+    let totalQuestions = 0;
 
     if (!roomCode) {
       window.location.href = 'host.html';
@@ -104,6 +105,7 @@ h1{color:#d9b78a;margin:0 0 18px 0;text-align:center;font-size:24px;font-weight:
     socket.on('hostLiveScores', (data) => {
       players = data.scores;
       totalPlayers = Object.keys(players).length;
+      if (data.totalQuestions) totalQuestions = data.totalQuestions;
       document.getElementById('totalPlayers').textContent = totalPlayers;
       updateScoreboard();
     });
@@ -125,25 +127,30 @@ h1{color:#d9b78a;margin:0 0 18px 0;text-align:center;font-size:24px;font-weight:
       const list = document.getElementById('scoreboardList');
       const sorted = Object.values(players).sort((a, b) => b.score - a.score);
       const medals = ['🥇', '🥈', '🥉'];
+      const allFinished = finishedPlayers >= totalPlayers && totalPlayers > 0;
 
       if (sorted.length === 0) {
         list.innerHTML = '<p class="empty-msg">Waiting for scores...</p>';
         return;
       }
 
-      list.innerHTML = sorted.map((p, i) => `
-        <div class="player-row ${i === 0 ? 'first' : i === 1 ? 'second' : i === 2 ? 'third' : ''}">
-          <div class="player-left">
-            <span class="player-rank">${medals[i] || (i + 1)}</span>
-            <span class="player-avatar">${renderAvatar(p.avatar, 24)}</span>
-            <span class="player-name">${p.name}</span>
+      list.innerHTML = sorted.map((p, i) => {
+        const correct = p.correct || 0;
+        const incorrect = totalQuestions - correct;
+        return `
+          <div class="player-row ${i === 0 ? 'first' : i === 1 ? 'second' : i === 2 ? 'third' : ''}">
+            <div class="player-left">
+              <span class="player-rank">${medals[i] || (i + 1)}</span>
+              <span class="player-avatar">${renderAvatar(p.avatar, 24)}</span>
+              <span class="player-name">${p.name}</span>
+            </div>
+            <div class="player-right">
+              <div class="player-score">${p.score} pts</div>
+              ${allFinished ? `<div class="player-correct">${correct} correct, ${incorrect} wrong</div>` : ''}
+            </div>
           </div>
-          <div class="player-right">
-            <div class="player-score">${p.score} pts</div>
-            <div class="player-correct">${p.correct || 0} correct</div>
-          </div>
-        </div>
-      `).join('');
+        `;
+      }).join('');
     }
 
     function endGame() {
@@ -159,6 +166,53 @@ h1{color:#d9b78a;margin:0 0 18px 0;text-align:center;font-size:24px;font-weight:
     socket.on('hostGameComplete', () => {
       document.getElementById('statusBadge').textContent = '🏆 Game Complete!';
       document.getElementById('statusBadge').className = 'status-badge status-finished';
+    });
+
+    // Final results
+    socket.on('hostGameResults', (data) => {
+      const rankings = document.getElementById('rankings');
+      const medals = ['🥇', '🥈', '🥉'];
+      const sorted = data.results.sort((a, b) => b.score - a.score);
+      let html = '<h3 style="color:#ffd700;">🏆 Final Rankings</h3>' + sorted.map((p, i) => `
+        <div class="player-row ${i === 0 ? 'first' : i === 1 ? 'second' : i === 2 ? 'third' : ''}">
+          <div class="player-left">
+            <span class="player-rank">${medals[i] || (i + 1)}</span>
+            <span class="player-avatar">${renderAvatar(p.avatar, 24)}</span>
+            <span class="player-name">${p.name}${p.name === PLAYER_NAME ? ' (You)' : ''}</span>
+          </div>
+          <div class="player-right">
+            <span class="player-score">${p.score} pts</span>
+            <div class="player-correct">${p.correct || 0} correct</div>
+          </div>
+        </div>
+      `).join('');
+
+      // Add wrong answers per question
+      if (data.questions && data.wrongAnswers) {
+        html += '<h3 style="color:#ff6b6b;margin-top:20px;">❌ Wrong Answers Per Question</h3>';
+        data.questions.forEach((q, idx) => {
+          const wrongPlayers = data.wrongAnswers[idx] || [];
+          const wrongCount = wrongPlayers.length;
+          const totalPlayers = Object.keys(data.results).length;
+          const wrongPlayerNames = wrongPlayers.map(socketId => {
+            const player = data.results.find(p => p.socketId === socketId);
+            return player ? player.name : 'Unknown';
+          }).join(', ');
+
+          html += `
+            <div class="question-wrong" style="background:rgba(255,255,255,0.02);padding:12px;border-radius:8px;margin:8px 0;border:1px solid rgba(255,255,255,0.05);">
+              <div class="question-text" style="font-weight:600;margin-bottom:6px;">Q${idx + 1}: ${q.q}</div>
+              <div class="wrong-info" style="font-size:13px;color:rgba(255,255,255,0.7);">
+                <span class="wrong-count">${wrongCount}/${totalPlayers} wrong</span>
+                ${wrongCount > 0 ? `<span class="wrong-names" style="color:#ff6b6b;"> (${wrongPlayerNames})</span>` : ''}
+              </div>
+            </div>
+          `;
+        });
+      }
+
+      rankings.innerHTML = html;
+      document.getElementById('resultsScreen').style.display = 'block';
     });
   </script>
 </body>

@@ -284,7 +284,7 @@ io.on("connection", (socket) => {
     io.to(`host_${roomCode}`).emit("hostGameStarted", { questions, timeLimit: room.timeLimit });
 
     // Emit initial live scores (all 0)
-    io.to(`host_${roomCode}`).emit("hostLiveScores", { scores: room.scores });
+    io.to(`host_${roomCode}`).emit("hostLiveScores", { scores: room.scores, totalQuestions: room.questions.length });
 
     console.log(`Host game started: ${roomCode} with ${questions.length} questions, ${room.timeLimit}s per question`);
   });
@@ -297,7 +297,7 @@ io.on("connection", (socket) => {
     room.hostSocketId = socket.id;
 
     // Send current scores and player count to host
-    socket.emit("hostLiveScores", { scores: room.scores });
+    socket.emit("hostLiveScores", { scores: room.scores, totalQuestions: room.questions.length });
     socket.emit("playerFinished", { finishedCount: room.finishedCount || 0 });
     console.log(`Host reconnected to room ${roomCode}, players: ${room.players.length}`);
   });
@@ -309,6 +309,7 @@ io.on("connection", (socket) => {
 
     room.scores[socket.id].score = score;
     room.scores[socket.id].correct = correct;
+    room.scores[socket.id].finished = false; // Ensure not finished during answering
 
     // Track wrong answers
     if (!correct) {
@@ -331,6 +332,7 @@ io.on("connection", (socket) => {
 
     room.scores[socket.id].score = score;
     room.scores[socket.id].correct = correct;
+    room.scores[socket.id].finished = true;
     room.finishedCount++;
 
     io.to(`host_${roomCode}`).emit("playerFinished", { finishedCount: room.finishedCount });
