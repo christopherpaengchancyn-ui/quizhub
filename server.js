@@ -213,8 +213,25 @@ io.on("connection", (socket) => {
     }
 
     socket.join(`host_${roomCode}`);
-    room.players.push({ socketId: socket.id, name: playerName, avatar: playerAvatar });
-    room.scores[socket.id] = { name: playerName, avatar: playerAvatar, score: 0, correct: 0 };
+
+    // If a player with same name already exists, treat this as a reconnect / update
+    const existing = room.players.find(p => p.name === playerName);
+    if (existing) {
+      const oldSid = existing.socketId;
+      existing.socketId = socket.id;
+      existing.avatar = playerAvatar || existing.avatar;
+
+      // Move score entry from oldSid to new socket id if present
+      if (oldSid && room.scores[oldSid]) {
+        room.scores[socket.id] = room.scores[oldSid];
+        delete room.scores[oldSid];
+      } else {
+        room.scores[socket.id] = room.scores[socket.id] || { name: playerName, avatar: playerAvatar || '😀', score: 0, correct: 0 };
+      }
+    } else {
+      room.players.push({ socketId: socket.id, name: playerName, avatar: playerAvatar });
+      room.scores[socket.id] = { name: playerName, avatar: playerAvatar, score: 0, correct: 0 };
+    }
 
     socket.emit("joinedHostRoom", { roomCode });
 
@@ -231,14 +248,30 @@ io.on("connection", (socket) => {
 
     socket.join(`host_${roomCode}`);
 
-    // Check if player already exists
+    // Find existing player by name
     const existingPlayer = room.players.find(p => p.name === playerName);
+
     if (!existingPlayer) {
+      // New join
       room.players.push({ socketId: socket.id, name: playerName, avatar: playerAvatar });
       room.scores[socket.id] = { name: playerName, avatar: playerAvatar, score: 0, correct: 0 };
     } else {
+      // Existing player returning - preserve any previous score
+      const previousSocketId = existingPlayer.socketId;
+      if (previousSocketId && previousSocketId !== socket.id) {
+        // transfer score if exists
+        if (room.scores[previousSocketId]) {
+          room.scores[socket.id] = room.scores[previousSocketId];
+          delete room.scores[previousSocketId];
+        } else {
+          room.scores[socket.id] = room.scores[socket.id] || { name: playerName, avatar: playerAvatar || existingPlayer.avatar || '😀', score: 0, correct: 0 };
+        }
+      } else {
+        room.scores[socket.id] = room.scores[socket.id] || { name: playerName, avatar: playerAvatar || existingPlayer.avatar || '😀', score: 0, correct: 0 };
+      }
+      // update stored socket id and avatar
       existingPlayer.socketId = socket.id;
-      room.scores[socket.id] = room.scores[existingPlayer.socketId] || { name: playerName, avatar: playerAvatar, score: 0, correct: 0 };
+      existingPlayer.avatar = playerAvatar || existingPlayer.avatar;
     }
 
     // Send room info
@@ -278,6 +311,7 @@ io.on("connection", (socket) => {
     Object.keys(room.scores).forEach(sid => {
       room.scores[sid].score = 0;
       room.scores[sid].correct = 0;
+      room.scores[sid].finished = false;
     });
 
     // Notify all players to start
@@ -305,7 +339,19 @@ io.on("connection", (socket) => {
   // Player submits answer in host game
   socket.on("hostGameAnswer", ({ roomCode, score, correct, questionIndex }) => {
     const room = hostRooms[roomCode];
-    if (!room || !room.scores[socket.id]) return;
+    if (!room) return;
+
+    // Ensure a score entry exists for this socket (fallback)
+    if (!room.scores[socket.id]) {
+      // try to find player record and create
+      const playerRecord = room.players.find(p => p.socketId === socket.id) || {};
+      room.scores[socket.id] = {
+        name: playerRecord.name || `Player-${socket.id.slice(0,4)}`,
+        avatar: playerRecord.avatar || '😀',
+        score: 0,
+        correct: 0
+      };
+    }
 
     room.scores[socket.id].score = score;
     room.scores[socket.id].correct = correct;
@@ -330,10 +376,27 @@ io.on("connection", (socket) => {
     const room = hostRooms[roomCode];
     if (!room) return;
 
+    // Ensure score entry exists
+    if (!room.scores[socket.id]) {
+      const playerRecord = room.players.find(p => p.socketId === socket.id) || {};
+      room.scores[socket.id] = {
+        name: playerRecord.name || `Player-${socket.id.slice(0,4)}`,
+        avatar: playerRecord.avatar || '😀',
+        score: 0,
+        correct: 0
+      };
+    }
+
     room.scores[socket.id].score = score;
     room.scores[socket.id].correct = correct;
     room.scores[socket.id].finished = true;
-    room.finishedCount++;
+
+    // Prevent double counting (if client accidentally emits twice)
+    if (!room._finishedMap) room._finishedMap = {};
+    if (!room._finishedMap[socket.id]) {
+      room.finishedCount = (room.finishedCount || 0) + 1;
+      room._finishedMap[socket.id] = true;
+    }
 
     io.to(`host_${roomCode}`).emit("playerFinished", { finishedCount: room.finishedCount });
     io.to(`host_${roomCode}`).emit("hostLiveScores", { scores: room.scores });
