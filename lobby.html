@@ -1,52 +1,38 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Game Lobby - QuizHub</title>
-  <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Game Lobby - QuizHub</title>
+<style>
 *{box-sizing:border-box;}
 body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;justify-content:center;align-items:flex-start;padding:20px 15px;margin:0;min-height:100vh;}
 .card{background:#24201c;padding:30px;border-radius:16px;width:100%;max-width:550px;box-shadow:0 8px 40px rgba(0,0,0,0.5);text-align:center;}
 @media(max-width:480px){.card{padding:22px 16px;}.room-box{padding:18px;}.players-grid{grid-template-columns:repeat(3,1fr);gap:10px;}.player-card{padding:12px 6px;}.player-card img.avatar{width:40px;height:40px;border-radius:50%;}}
-
-/* Header */
 h1{color:#d9b78a;margin:0 0 20px 0;font-size:24px;font-weight:600;}
-
-/* Room Box */
 .room-box{background:rgba(255,255,255,0.02);padding:22px;border-radius:14px;margin-bottom:18px;border:1px solid rgba(255,255,255,0.05);}
 .room-label{color:rgba(255,255,255,0.4);font-size:11px;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;}
 .room-code{font-size:clamp(26px,8vw,38px);font-weight:700;color:#d9b78a;letter-spacing:clamp(4px,1.5vw,8px);font-family:monospace;margin:10px 0;}
 .host-info{display:flex;align-items:center;justify-content:center;gap:10px;color:rgba(255,255,255,0.55);font-size:13px;margin-top:14px;padding-top:14px;border-top:1px solid rgba(255,255,255,0.05);flex-wrap:wrap;}
 .host-avatar img{width:40px;height:40px;border-radius:50%;}
-
-/* Question Badge */
 .question-badge{background:rgba(182,139,90,0.12);padding:9px 18px;border-radius:25px;display:inline-block;margin:15px 0;color:#d9b78a;font-size:12px;font-weight:500;}
-
-/* Section Title */
 .section-title{color:rgba(255,255,255,0.5);font-size:11px;margin:18px 0 12px 0;text-transform:uppercase;letter-spacing:1.5px;font-weight:600;}
-
-/* Players Grid */
 .players-grid{display:grid;grid-template-columns:repeat(auto-fill, minmax(85px, 1fr));gap:12px;margin:14px 0;}
 .player-card{background:rgba(255,255,255,0.02);padding:14px 10px;border-radius:12px;text-align:center;transition:all 0.2s;border:1px solid rgba(255,255,255,0.05);}
 .player-card img.avatar{width:48px;height:48px;border-radius:50%;display:block;margin:0 auto 6px auto;}
 .player-card .name{color:#cfc5b8;font-size:11px;word-break:break-word;font-weight:500;}
 .player-card.you{background:rgba(182,139,90,0.1);border:1px solid rgba(182,139,90,0.25);}
-
-/* Waiting */
 .waiting-box{margin:22px 0;}
 .waiting-text{color:rgba(255,255,255,0.45);font-size:14px;}
 .dots span{animation:blink 1.4s infinite both;color:#d9b78a;}
 .dots span:nth-child(2){animation-delay:0.2s;}
 .dots span:nth-child(3){animation-delay:0.4s;}
 @keyframes blink{0%,80%,100%{opacity:0;}40%{opacity:1;}}
-
-/* Buttons */
 .btn{width:100%;padding:13px;border-radius:10px;border:none;background:rgba(255,255,255,0.08);color:#cfc5b8;font-weight:600;cursor:pointer;transition:all 0.2s;margin-top:12px;min-height:50px;font-size:14px;}
 .btn:hover{background:rgba(255,255,255,0.12);}
 .btn-leave{background:rgba(255,100,100,0.12);color:#ff6b6b;}
 .btn-leave:hover{background:rgba(255,100,100,0.2);}
-  </style>
+</style>
 </head>
 <body>
 <div class="card">
@@ -92,11 +78,19 @@ document.getElementById('roomCode').textContent = roomCode;
 // Rejoin room
 socket.emit('rejoinHostRoom', { roomCode, playerName: PLAYER_NAME, playerAvatar: PLAYER_AVATAR });
 
+// Request current players immediately
+socket.emit('requestPlayerList', { roomCode });
+
 // Room info received
 socket.on('hostRoomInfo', (data) => {
   document.getElementById('hostName').textContent = data.hostName;
   document.getElementById('hostAvatar').src = data.hostAvatar || 'default-avatar.png';
   document.getElementById('questionCount').textContent = data.questionCount;
+  updatePlayersList(data.players);
+});
+
+// Current players (full list)
+socket.on('currentPlayers', (data) => {
   updatePlayersList(data.players);
 });
 
@@ -116,8 +110,14 @@ function updatePlayersList(players) {
   players.forEach(p => {
     const div = document.createElement('div');
     div.className = 'player-card' + (p.name === PLAYER_NAME ? ' you' : '');
+    
+    // FIX: avatar displays correctly
+    let avatarSrc = p.avatar && (p.avatar.startsWith('http://') || p.avatar.startsWith('https://'))
+                    ? p.avatar
+                    : 'default-avatar.png';
+    
     div.innerHTML = `
-      <img class="avatar" src="${p.avatar || 'default-avatar.png'}" alt="${p.name}">
+      <img class="avatar" src="${avatarSrc}" alt="${p.name}">
       <div class="name">${p.name}${p.name === PLAYER_NAME ? ' (You)' : ''}</div>
     `;
     grid.appendChild(div);
