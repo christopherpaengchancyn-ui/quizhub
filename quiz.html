@@ -117,6 +117,11 @@ const PLAYER_AVATAR = userData ? userData.avatar : '😎';
 let category = sessionStorage.getItem('quizDiff') || 'Easy'; // Using quizDiff for backward compat
 let gameMode = sessionStorage.getItem('gameMode') || 'classic';
 let roomKey = `${category}_${gameMode}`;
+let isHostRoom = false;
+if (sessionStorage.getItem('hostRoomCode')) {
+  roomKey = sessionStorage.getItem('hostRoomCode');
+  isHostRoom = true;
+}
 let qsList = [];
 let index = 0, totalPoints = 0, correctCount = 0, currentStreak = 0;
 let timerInterval, questionStartTime;
@@ -205,7 +210,11 @@ function handleAnswer(userAnswer){
   }
 
   // Send to server
-  socket.emit('answer', { roomKey, correct, timeTaken });
+  if (isHostRoom) {
+    socket.emit('hostGameAnswer', { roomCode: roomKey, score: totalPoints, correct: correct ? 1 : 0, questionIndex: index });
+  } else {
+    socket.emit('answer', { roomKey, correct, timeTaken });
+  }
 
   updateStatsDisplay();
   setTimeout(nextQuestion, 700);
@@ -221,7 +230,11 @@ function nextQuestion(){
 // ----------------- Finish Quiz -----------------
 function finishQuiz(){
   clearInterval(timerInterval);
-  socket.emit('finish', { roomKey });
+  if (isHostRoom) {
+    socket.emit('hostGameFinished', { roomCode: roomKey, score: totalPoints, correct: correctCount, total: qsList.length });
+  } else {
+    socket.emit('finish', { roomKey });
+  }
 }
 
 // ----------------- Multiplayer Setup -----------------
@@ -245,18 +258,44 @@ socket.on('startQuiz', (data) => {
   renderQ();
 });
 
-// Live scores update
-socket.on('liveScores', (scores) => {
-  const list = document.getElementById('liveScoresList');
-  list.innerHTML = scores.map(p =>
-    `<div class="live-player"><span><img src="${p.avatar || 'avatar1.jpg'}" style="width:20px; height:20px; border-radius:50%; margin-right:5px;">${p.name}</span><span>${p.points} pts</span></div>`
-  ).join('');
+// Host game starts
+socket.on('hostGameStarted', (data) => {
+  qsList = data.questions;
+  category = 'Custom';
+  gameMode = 'classic';
 
-  // Update own points
-  const myScore = scores.find(p => p.name === PLAYER_NAME);
-  if(myScore) totalPoints = myScore.points;
-  updateStatsDisplay();
+  document.getElementById('qTotal').innerText = qsList.length;
+  document.getElementById('waitingScreen').style.display = 'none';
+  document.getElementById('quizScreen').style.display = 'block';
+  renderQ();
 });
+
+    // Live scores update
+    socket.on('liveScores', (scores) => {
+      const list = document.getElementById('liveScoresList');
+      list.innerHTML = scores.sort((a, b) => b.points - a.points).map(p =>
+        `<div class="live-player"><span>${renderAvatar(p.avatar, 20)} ${p.name}</span><span>${p.points} pts</span></div>`
+      ).join('');
+
+      // Update own points
+      const myScore = scores.find(p => p.name === PLAYER_NAME);
+      if(myScore) totalPoints = myScore.points;
+      updateStatsDisplay();
+    });
+
+    // Host live scores update
+    socket.on('hostLiveScores', (data) => {
+      const scores = Object.values(data.scores).sort((a, b) => b.score - a.score);
+      const list = document.getElementById('liveScoresList');
+      list.innerHTML = scores.map(p =>
+        `<div class="live-player"><span>${renderAvatar(p.avatar, 20)} ${p.name}</span><span>${p.score} pts</span></div>`
+      ).join('');
+
+      // Update own points
+      const myScore = scores.find(p => p.name === PLAYER_NAME);
+      if(myScore) totalPoints = myScore.score;
+      updateStatsDisplay();
+    });
 
 // Match results
 socket.on('matchResult', (results) => {
@@ -285,6 +324,39 @@ socket.on('matchResult', (results) => {
       gamesPlayed: 1,
       wins: results[0].name === PLAYER_NAME ? 1 : 0,
       totalScore: myResult.points,
+      bestStreak: currentStreak
+    });
+  }
+});
+
+// Host game results
+socket.on('hostGameResults', (data) => {
+  SoundSystem.victory();
+  document.getElementById('quizScreen').style.display = 'none';
+  document.getElementById('resultScreen').style.display = 'block';
+
+  const results = Object.values(data.results).sort((a, b) => b.score - a.score);
+  document.getElementById('scoreSummary').innerHTML = results.map((p, i) => {
+    const rankIcon = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : (i + 1);
+    const isWinner = i === 0;
+    const isMe = p.name === PLAYER_NAME;
+    return `<div class="player ${isWinner ? 'winner' : ''}" ${isMe ? 'style="border:1px solid #d9b78a;"' : ''}>
+      <span class="player-rank">${rankIcon}</span>
+      <div class="player-info">
+        <div class="player-name"><img src="${p.avatar || 'avatar1.jpg'}" style="width:20px; height:20px; border-radius:50%; margin-right:5px;">${p.name} ${isMe ? '(You)' : ''}</div>
+        <div class="muted">${p.correct}/${p.total} correct</div>
+      </div>
+      <div class="player-score">${p.score} pts</div>
+    </div>`;
+  }).join('');
+
+  // Update user stats
+  const myResult = results.find(p => p.name === PLAYER_NAME);
+  if(myResult){
+    updateUserStats({
+      gamesPlayed: 1,
+      wins: results[0].name === PLAYER_NAME ? 1 : 0,
+      totalScore: myResult.score,
       bestStreak: currentStreak
     });
   }
