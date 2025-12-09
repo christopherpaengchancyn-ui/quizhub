@@ -51,7 +51,8 @@ hostRooms[roomCode] = {
    questions: [],
    started: false,
    scores: { socketId: { name, avatar, score, correct } },
-   finishedCount: 0
+   finishedCount: 0,
+   wrongAnswers: { questionIndex: [playerSocketIds] }
 }
 */
 
@@ -183,7 +184,8 @@ io.on("connection", (socket) => {
       questions: [],
       started: false,
       scores: {},
-      finishedCount: 0
+      finishedCount: 0,
+      wrongAnswers: {}
     };
     socket.join(`host_${roomCode}`);
     console.log(`Host room created: ${roomCode} by ${hostName}`);
@@ -280,6 +282,10 @@ io.on("connection", (socket) => {
 
     // Notify all players to start
     io.to(`host_${roomCode}`).emit("hostGameStarted", { questions, timeLimit: room.timeLimit });
+
+    // Emit initial live scores (all 0)
+    io.to(`host_${roomCode}`).emit("hostLiveScores", { scores: room.scores });
+
     console.log(`Host game started: ${roomCode} with ${questions.length} questions, ${room.timeLimit}s per question`);
   });
 
@@ -297,12 +303,22 @@ io.on("connection", (socket) => {
   });
 
   // Player submits answer in host game
-  socket.on("hostGameAnswer", ({ roomCode, score, correct }) => {
+  socket.on("hostGameAnswer", ({ roomCode, score, correct, questionIndex }) => {
     const room = hostRooms[roomCode];
     if (!room || !room.scores[socket.id]) return;
 
     room.scores[socket.id].score = score;
     room.scores[socket.id].correct = correct;
+
+    // Track wrong answers
+    if (!correct) {
+      if (!room.wrongAnswers[questionIndex]) {
+        room.wrongAnswers[questionIndex] = [];
+      }
+      if (!room.wrongAnswers[questionIndex].includes(socket.id)) {
+        room.wrongAnswers[questionIndex].push(socket.id);
+      }
+    }
 
     // Broadcast live scores
     io.to(`host_${roomCode}`).emit("hostLiveScores", { scores: room.scores });
@@ -323,7 +339,11 @@ io.on("connection", (socket) => {
     // If all players finished, send final results
     if (room.finishedCount >= room.players.length) {
       const results = Object.values(room.scores).sort((a, b) => b.score - a.score);
-      io.to(`host_${roomCode}`).emit("hostGameResults", { results });
+      io.to(`host_${roomCode}`).emit("hostGameResults", {
+        results,
+        questions: room.questions,
+        wrongAnswers: room.wrongAnswers
+      });
       io.to(`host_${roomCode}`).emit("hostGameComplete");
     }
   });

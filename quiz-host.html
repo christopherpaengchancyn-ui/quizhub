@@ -217,7 +217,7 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1112;color:#cfc5b8;di
       }
 
       // Send score to server
-      socket.emit('hostGameAnswer', { roomCode, score: totalPoints, correct: correctCount });
+      socket.emit('hostGameAnswer', { roomCode, score: totalPoints, correct: correctCount, questionIndex: index });
 
       setTimeout(() => {
         index++;
