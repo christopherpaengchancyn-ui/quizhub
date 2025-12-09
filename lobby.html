@@ -76,8 +76,8 @@ h1{color:#d9b78a;margin:0 0 20px 0;font-size:24px;font-weight:600;}
   <button class="btn btn-leave" onclick="leaveRoom()">Leave Room</button>
 </div>
 
-<script src="quiz.js"></script>
 <script src="/socket.io/socket.io.js"></script>
+<script src="quiz.js"></script>
 <script>
 requireLogin();
 const userData = getCurrentUserData();
@@ -100,7 +100,7 @@ socket.on('hostRoomInfo', (data) => {
   updatePlayersList(data.players);
 });
 
-// Player joined/left
+// Player joined/left events
 socket.on('playerJoinedHostRoom', (data) => updatePlayersList(data.players));
 socket.on('playerLeftHostRoom', (data) => updatePlayersList(data.players));
 
