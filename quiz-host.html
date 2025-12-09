@@ -1,10 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Host Quiz - QuizHub</title>
   <style>
+/* (Your existing CSS — unchanged) */
 *{box-sizing:border-box;}
 body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;justify-content:center;align-items:flex-start;padding:15px;margin:0;min-height:100vh;}
 .card{background:#24201c;padding:25px;border-radius:16px;width:100%;max-width:650px;box-shadow:0 8px 40px rgba(0,0,0,0.5);}
@@ -47,6 +48,8 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1112;color:#cfc5b8;di
 .streak-display{position:fixed;top:15px;right:15px;background:linear-gradient(135deg,#ff6b6b,#d9b78a);padding:7px 14px;border-radius:25px;font-size:12px;color:#fff;display:none;z-index:100;font-weight:500;}
 .streak-display.show{display:block;animation:pulse 0.5s;}
 @keyframes pulse{0%,100%{transform:scale(1);}50%{transform:scale(1.1);}}
+
+/* Points popup */
 .points-popup{position:fixed;font-size:18px;font-weight:700;color:#4ade80;pointer-events:none;animation:floatUp 1s forwards;z-index:100;}
 @keyframes floatUp{0%{opacity:1;transform:translateY(0);}100%{opacity:0;transform:translateY(-50px);}}
 
@@ -115,174 +118,218 @@ body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1112;color:#cfc5b8;di
 
 <div class="streak-display" id="streakPopup">🔥 <span id="streakCount">0</span> Streak!</div>
 
-  <script src="quiz.js"></script>
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    requireLogin();
-    const userData = getCurrentUserData();
-    const PLAYER_NAME = userData ? userData.name : 'Player';
-    const PLAYER_AVATAR = userData ? (userData.avatar || '😀') : '😀';
+<script src="quiz.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<script>
+  // keep your original helper functions (requireLogin, getCurrentUserData, renderAvatar, calculatePoints, SoundSystem, etc.)
+  requireLogin();
+  const userData = getCurrentUserData();
+  const PLAYER_NAME = userData ? userData.name : 'Player';
+  const PLAYER_AVATAR = userData ? (userData.avatar || '😀') : '😀';
 
-    let socket = io();
-    const roomCode = sessionStorage.getItem('hostRoomCode');
-    const TIME_LIMIT = parseInt(sessionStorage.getItem('hostTimeLimit')) || 30;
+  let socket = io();
+  const roomCode = sessionStorage.getItem('hostRoomCode');
+  const TIME_LIMIT = parseInt(sessionStorage.getItem('hostTimeLimit')) || 30;
 
-    let qsList = JSON.parse(sessionStorage.getItem('hostGameQuestions') || '[]');
-    let index = 0, totalPoints = 0, correctCount = 0, currentStreak = 0, bestStreak = 0;
-    let timerInterval, questionStartTime;
+  let qsList = JSON.parse(sessionStorage.getItem('hostGameQuestions') || '[]');
+  let index = 0, totalPoints = 0, correctCount = 0, currentStreak = 0, bestStreak = 0;
+  let timerInterval, questionStartTime;
 
-    if (!roomCode || qsList.length === 0) {
-      window.location.href = 'join.html';
-    }
+  if (!roomCode || qsList.length === 0) {
+    window.location.href = 'join.html';
+  }
 
-    // Rejoin room for live scores
-    socket.emit('rejoinHostRoom', { roomCode, playerName: PLAYER_NAME, playerAvatar: PLAYER_AVATAR });
+  document.getElementById('qTotal').textContent = qsList.length;
 
-    document.getElementById('qTotal').textContent = qsList.length;
+  // When socket connects (or reconnects), inform server that host is here and give questions
+  function announceHost() {
+    // Tell server this connection is the host for roomCode plus send questions so server has room.questions
+    socket.emit('hostReconnect', { roomCode, questions: qsList });
+    // Also tell server the game is starting and how many questions (so server sets wrongAnswers, totalQuestions)
+    socket.emit('hostStartGame', { roomCode, totalQuestions: qsList.length, questions: qsList });
+  }
 
-    function shuffle(arr) { return arr.slice().sort(() => Math.random() - 0.5); }
+  socket.on('connect', () => {
+    console.log('socket connected as', socket.id);
+    // announce host on connect
+    announceHost();
+  });
 
-    function startTimer() {
-      clearInterval(timerInterval);
-      let timeLeft = TIME_LIMIT;
-      questionStartTime = Date.now();
+  // Fallback: if initial connect already happened earlier, call announce immediately
+  if (socket.connected) announceHost();
+
+  function shuffle(arr) { return arr.slice().sort(() => Math.random() - 0.5); }
+
+  function startTimer() {
+    clearInterval(timerInterval);
+    let timeLeft = TIME_LIMIT;
+    questionStartTime = Date.now();
+    updateTimerDisplay(timeLeft);
+    timerInterval = setInterval(() => {
+      timeLeft--;
       updateTimerDisplay(timeLeft);
-      timerInterval = setInterval(() => {
-        timeLeft--;
-        updateTimerDisplay(timeLeft);
-        if (timeLeft <= 5 && timeLeft > 0) SoundSystem.tick();
-        if (timeLeft <= 0) { clearInterval(timerInterval); handleAnswer(null, null); }
-      }, 1000);
-    }
+      if (timeLeft <= 5 && timeLeft > 0) SoundSystem.tick();
+      if (timeLeft <= 0) { clearInterval(timerInterval); handleAnswer(null, null); }
+    }, 1000);
+  }
 
-    function updateTimerDisplay(time) {
-      const percent = (time / TIME_LIMIT) * 100;
-      const fill = document.getElementById('timerFill');
-      fill.style.width = percent + '%';
-      fill.className = 'timer-fill' + (time <= 5 ? ' danger' : time <= 10 ? ' warning' : '');
-    }
+  function updateTimerDisplay(time) {
+    const percent = (time / TIME_LIMIT) * 100;
+    const fill = document.getElementById('timerFill');
+    fill.style.width = percent + '%';
+    fill.className = 'timer-fill' + (time <= 5 ? ' danger' : time <= 10 ? ' warning' : '');
+  }
 
-    function renderQ() {
-      clearInterval(timerInterval);
-      document.getElementById('qNum').textContent = index + 1;
-      document.getElementById('qNumText').textContent = index + 1;
-      const q = qsList[index];
-      document.getElementById('qTitle').textContent = q.q;
-      const area = document.getElementById('answers');
-      area.innerHTML = '';
-      shuffle(q.choices).forEach(c => {
-        const btn = document.createElement('button');
-        btn.className = 'choice';
-        btn.textContent = c;
-        btn.onclick = (e) => {
-          Array.from(area.children).forEach(b => b.disabled = true);
-          handleAnswer(c, e);
-        };
-        area.appendChild(btn);
-      });
-      startTimer();
-    }
+  function renderQ() {
+    clearInterval(timerInterval);
+    document.getElementById('qNum').textContent = index + 1;
+    document.getElementById('qNumText').textContent = index + 1;
+    const q = qsList[index];
+    document.getElementById('qTitle').textContent = q.q;
+    const area = document.getElementById('answers');
+    area.innerHTML = '';
+    shuffle(q.choices).forEach(c => {
+      const btn = document.createElement('button');
+      btn.className = 'choice';
+      btn.textContent = c;
+      btn.onclick = (e) => {
+        Array.from(area.children).forEach(b => b.disabled = true);
+        handleAnswer(c, e);
+      };
+      area.appendChild(btn);
+    });
+    startTimer();
+  }
 
-    function handleAnswer(userAnswer, event) {
-      clearInterval(timerInterval);
-      const q = qsList[index];
-      const correct = userAnswer === q.a;
-      const timeTaken = (Date.now() - questionStartTime) / 1000;
+  function handleAnswer(userAnswer, event) {
+    clearInterval(timerInterval);
+    const q = qsList[index];
+    const isCorrect = userAnswer === q.a;
+    const timeTaken = (Date.now() - questionStartTime) / 1000;
 
-      const area = document.getElementById('answers');
-      Array.from(area.children).forEach(btn => {
-        if (btn.textContent === q.a) btn.classList.add('correct');
-        else if (btn.textContent === userAnswer) btn.classList.add('wrong');
-      });
+    const area = document.getElementById('answers');
+    Array.from(area.children).forEach(btn => {
+      if (btn.textContent === q.a) btn.classList.add('correct');
+      else if (btn.textContent === userAnswer) btn.classList.add('wrong');
+    });
 
-      if (correct) {
-        SoundSystem.correct();
-        correctCount++;
-        currentStreak++;
-        if (currentStreak > bestStreak) bestStreak = currentStreak;
-        const points = calculatePoints(timeTaken, currentStreak, 'classic');
-        totalPoints += points;
-        document.getElementById('pointsDisplay').textContent = totalPoints;
-        document.getElementById('streakDisplay').textContent = currentStreak;
-        if (currentStreak >= 3) {
-          document.getElementById('streakCount').textContent = currentStreak;
-          document.getElementById('streakPopup').classList.add('show');
-          setTimeout(() => document.getElementById('streakPopup').classList.remove('show'), 1500);
-        }
-        if (event) showPointsPopup(points, event.clientX, event.clientY);
-      } else {
-        SoundSystem.wrong();
-        currentStreak = 0;
-        document.getElementById('streakDisplay').textContent = 0;
+    if (isCorrect) {
+      SoundSystem.correct();
+      correctCount++;
+      currentStreak++;
+      if (currentStreak > bestStreak) bestStreak = currentStreak;
+      const points = calculatePoints(timeTaken, currentStreak, 'classic');
+      totalPoints += points;
+      document.getElementById('pointsDisplay').textContent = totalPoints;
+      document.getElementById('streakDisplay').textContent = currentStreak;
+      if (currentStreak >= 3) {
+        document.getElementById('streakCount').textContent = currentStreak;
+        document.getElementById('streakPopup').classList.add('show');
+        setTimeout(() => document.getElementById('streakPopup').classList.remove('show'), 1500);
       }
-
-      // Send score to server
-      socket.emit('hostGameAnswer', { roomCode, score: totalPoints, correct: correctCount, questionIndex: index });
-
-      setTimeout(() => {
-        index++;
-        if (index >= qsList.length) finishQuiz();
-        else renderQ();
-      }, 1200);
+      if (event) showPointsPopup(points, event.clientX, event.clientY);
+    } else {
+      SoundSystem.wrong();
+      currentStreak = 0;
+      document.getElementById('streakDisplay').textContent = 0;
     }
 
-    function showPointsPopup(points, x, y) {
-      const popup = document.createElement('div');
-      popup.className = 'points-popup';
-      popup.textContent = '+' + points;
-      popup.style.left = x + 'px';
-      popup.style.top = y + 'px';
-      document.body.appendChild(popup);
-      setTimeout(() => popup.remove(), 1000);
-    }
-
-    function finishQuiz() {
-      clearInterval(timerInterval);
-      SoundSystem.victory();
-      socket.emit('hostGameFinished', { roomCode, score: totalPoints, correct: correctCount, total: qsList.length });
-      document.getElementById('quizScreen').style.display = 'none';
-      document.getElementById('resultScreen').style.display = 'block';
-      document.getElementById('finalPoints').textContent = totalPoints;
-      document.getElementById('finalCorrect').textContent = correctCount + '/' + qsList.length;
-      document.getElementById('finalStreak').textContent = bestStreak;
-      document.getElementById('finalAccuracy').textContent = Math.round((correctCount / qsList.length) * 100) + '%';
-    }
-
-    // Live scores update
-    socket.on('hostLiveScores', (data) => {
-      const list = document.getElementById('liveScoresList');
-      const sorted = Object.values(data.scores).sort((a, b) => b.score - a.score);
-      list.innerHTML = sorted.map(p => `
-        <div class="score-row">
-          <div class="player-info">
-            <span>${renderAvatar(p.avatar, 20)}</span>
-            <span>${p.name}${p.name === PLAYER_NAME ? ' (You)' : ''}</span>
-          </div>
-          <span class="player-score">${p.score} pts</span>
-        </div>
-      `).join('');
+    // --- Emit in a compatible way:
+    // We include: socketId (so server versions expecting it work), isCorrect (boolean),
+    // and also include score & correct totals (so server versions accepting client totals work).
+    socket.emit('hostGameAnswer', {
+      roomCode,
+      socketId: socket.id,
+      isCorrect,
+      questionIndex: index,
+      // also include totals — harmless and helps compatibility
+      score: totalPoints,
+      correct: correctCount
     });
 
-    // Final results
-    socket.on('hostGameResults', (data) => {
-      const rankings = document.getElementById('rankings');
-      const medals = ['🥇', '🥈', '🥉'];
-      const sorted = data.results.sort((a, b) => b.score - a.score);
-      rankings.innerHTML = '<h3 style="color:#ffd700;">🏆 Final Rankings</h3>' + sorted.map((p, i) => `
-        <div class="rank-item">
-          <div class="rank-info">
-            <span class="rank-medal">${medals[i] || '🎮'}</span>
-            <span>${renderAvatar(p.avatar, 24)}</span>
-            <span style="color:#d9b78a;">${p.name}${p.name === PLAYER_NAME ? ' (You)' : ''}</span>
-          </div>
-          <span class="rank-score">${p.score} pts</span>
-        </div>
-      `).join('');
+    setTimeout(() => {
+      index++;
+      if (index >= qsList.length) finishQuiz();
+      else renderQ();
+    }, 1200);
+  }
+
+  function showPointsPopup(points, x, y) {
+    const popup = document.createElement('div');
+    popup.className = 'points-popup';
+    popup.textContent = '+' + points;
+    popup.style.left = x + 'px';
+    popup.style.top = y + 'px';
+    document.body.appendChild(popup);
+    setTimeout(() => popup.remove(), 1000);
+  }
+
+  function finishQuiz() {
+    clearInterval(timerInterval);
+    SoundSystem.victory();
+
+    // send finished event — include socketId so server can map the host player
+    socket.emit('hostGameFinished', {
+      roomCode,
+      socketId: socket.id,
+      score: totalPoints,
+      correct: correctCount,
+      total: qsList.length
     });
 
-    // Start quiz
-    renderQ();
-  </script>
+    document.getElementById('quizScreen').style.display = 'none';
+    document.getElementById('resultScreen').style.display = 'block';
+    document.getElementById('finalPoints').textContent = totalPoints;
+    document.getElementById('finalCorrect').textContent = correctCount + '/' + qsList.length;
+    document.getElementById('finalStreak').textContent = bestStreak;
+    document.getElementById('finalAccuracy').textContent = Math.round((correctCount / qsList.length) * 100) + '%';
+  }
+
+  // Live scores update (host receives live scores)
+  socket.on('hostLiveScores', (data) => {
+    const list = document.getElementById('liveScoresList');
+    const sorted = Object.values(data.scores || {}).sort((a, b) => (b.score || 0) - (a.score || 0));
+    list.innerHTML = sorted.map(p => `
+      <div class="score-row">
+        <div class="player-info">
+          <span>${renderAvatar(p.avatar, 20)}</span>
+          <span>${p.name}${p.name === PLAYER_NAME ? ' (You)' : ''}</span>
+        </div>
+        <span class="player-score">${p.score || 0} pts</span>
+      </div>
+    `).join('');
+  });
+
+  // Final results
+  socket.on('hostGameResults', (data) => {
+    const rankings = document.getElementById('rankings');
+    const medals = ['🥇','🥈','🥉'];
+    const sorted = (data.results || []).sort((a,b)=> (b.score||0)-(a.score||0));
+    rankings.innerHTML = '<h3 style="color:#ffd700;">🏆 Final Rankings</h3>' + sorted.map((p,i)=>`
+      <div class="rank-item">
+        <div class="rank-info">
+          <span class="rank-medal">${medals[i] || '🎮'}</span>
+          <span>${renderAvatar(p.avatar,24)}</span>
+          <span style="color:#d9b78a;">${p.name}${p.name === PLAYER_NAME ? ' (You)' : ''}</span>
+        </div>
+        <span class="rank-score">${p.score || 0} pts</span>
+      </div>
+    `).join('');
+  });
+
+  // If host gets disconnected and reconnects, server will resend live state — handle it
+  socket.on('hostLiveScores', (data) => {
+    // already handled above; kept here for safety (idempotent)
+  });
+
+  // Start quiz locally
+  renderQ();
+
+  // Optional: when page unloads, notify server (not required)
+  window.addEventListener('beforeunload', () => {
+    try { socket.emit('hostDisconnecting', { roomCode }); } catch(e) {}
+  });
+
+</script>
 </body>
 </html>
-
