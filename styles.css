@@ -88,8 +88,8 @@ button.btn:hover{
 }
 
 button.choice{
-    background: rgba(182,139,90,0.1);
-    color: var(--muted);
+    background: #DB91EF;
+    color: #111827;
     /* make buttons span most of the card but limit to a comfortable max width */
     box-sizing: border-box;
     width: calc(100% - 32px);         /* leave horizontal breathing room */
@@ -97,17 +97,18 @@ button.choice{
     padding: 0.9rem 1.6rem;           /* increased horizontal padding to reach near card edges */
     font-weight: 500;
     border-radius: 10px;
-    border: none;
+    border: 1px solid rgba(0,0,0,0.06);
     cursor: pointer;
     text-align: center;               /* center text inside */
     display: flex;
     justify-content: center;          /* center content horizontally */
     align-items: center;              /* center content vertically */
     margin: 0.4rem auto;              /* center button and add small vertical spacing */
+    transition: background 0.15s ease;
 }
 
 button.choice:hover{
-    background: rgba(182,139,90,0.3);
+    background: #c77be6;
 }
 
 /* clearly visible selected state */
@@ -154,4 +155,28 @@ footer{
     color: rgba(255,255,255,0.5);
     font-size: 13px;
     text-align: center;
+}
+
+/* Answer-box specific overrides (placed after main rules so they win) */
+.answers .answer-box,
+.answers .option,
+.answers .answer-btn,
+.answers button.choice,
+.answers .choice,
+.answers .answer {
+    background: #111827;
+    color: #f9fafb;
+    border: 1px solid rgba(255,255,255,0.04);
+    border-radius: 10px;
+    transition: background 0.15s ease, color 0.15s ease;
+}
+
+.answers .answer-box:hover,
+.answers .option:hover,
+.answers .answer-btn:hover,
+.answers button.choice:hover,
+.answers .choice:hover,
+.answers .answer:hover {
+    background: #1f2933;
+    color: #f9fafb;
 }
