@@ -5,6 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Join a Game - QuizHub</title>
   <style>
+  /* Lilac Blush global variables and centering */
+  :root{--lilac-blush:#9874D3}
+  html, body, .container, .page, .view, .modal, .app-root { background-color: var(--lilac-blush) !important; }
+  body { background-color: var(--lilac-blush) !important; }
+  .answer-choice, .option, .choices, .answers, .choice, .answer, .answer-row, .choice-row, .choice-field, button.choice { display:flex !important; justify-content:center !important; align-items:center !important; text-align:center !important; }
+  input[type="radio"], input[type="checkbox"]{ margin-right:8px; }
+  input[type="radio"]:checked + label, input[type="checkbox"]:checked + label, button.choice.selected, .choice.selected, .selected { background: rgba(0,0,0,0.18) !important; color:#fff !important; border-color: rgba(255,255,255,0.12) !important; }
 *{box-sizing:border-box;}
 body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;justify-content:center;align-items:center;padding:20px 15px;margin:0;min-height:100vh;}
 .card{background:#24201c;padding:35px;border-radius:16px;width:100%;max-width:450px;box-shadow:0 8px 40px rgba(0,0,0,0.5);text-align:center;}
@@ -81,7 +88,18 @@ h1{color:#d9b78a;margin:0 0 8px 0;font-size:24px;font-weight:600;}
     const PLAYER_NAME = userData ? userData.name : 'Player';
     const PLAYER_AVATAR = userData ? (userData.avatar || '😀') : '😀';
 
-    let socket = io();
+    let socket = (function(){ const s = { emit: ()=>{}, on: ()=>{}, off: ()=>{}, disconnect: ()=>{}, connect: ()=>{} }; return s; })();
+    (function ensureSocketClient(){
+      if (typeof io !== 'undefined'){
+        try{ socket = io(); }catch(e){ console.warn('socket init error', e); }
+        return;
+      }
+      const s = document.createElement('script');
+      s.src = 'https://cdn.socket.io/4.5.4/socket.io.min.js';
+      s.onload = () => { try{ socket = (typeof io !== 'undefined') ? io() : socket; }catch(e){ console.warn('socket init error', e); } };
+      s.onerror = () => console.warn('Failed to load Socket.IO client fallback');
+      document.head.appendChild(s);
+    })();
     const codeInput = document.getElementById('roomCodeInput');
     const joinBtn = document.getElementById('joinBtn');
     const errorMsg = document.getElementById('errorMsg');

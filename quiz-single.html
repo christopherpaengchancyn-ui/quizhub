@@ -5,6 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Quiz - QuizHub</title>
 <style>
+/* Lilac Blush global variables and centering */
+:root{--lilac-blush:#9874D3}
+html, body, .container, .page, .view, .modal, .app-root { background-color: var(--lilac-blush) !important; }
+body { background-color: var(--lilac-blush) !important; }
+.answer-choice, .option, .choices, .answers, .choice, .answer, .answer-row, .choice-row, .choice-field, button.choice { display:flex !important; justify-content:center !important; align-items:center !important; text-align:center !important; }
+input[type="radio"], input[type="checkbox"]{ margin-right:8px; }
+input[type="radio"]:checked + label, input[type="checkbox"]:checked + label, button.choice.selected, .choice.selected, .selected { background: rgba(0,0,0,0.18) !important; color:#fff !important; border-color: rgba(255,255,255,0.12) !important; }
 *{box-sizing:border-box;}
 body{font-family:'Segoe UI',Arial,sans-serif;background:#0f1112;color:#cfc5b8;display:flex;justify-content:center;align-items:center;min-height:100vh;margin:0;padding:15px;}
 .card{background:#24201c;padding:30px;border-radius:16px;width:100%;max-width:650px;box-shadow:0 8px 40px rgba(0,0,0,0.5);}
@@ -112,7 +119,24 @@ h2{color:#d9b78a;margin-bottom:15px;font-weight:600;}
 <script src="quiz.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script>
-const socket = io();
+let socket = null;
+function ensureSocketClient(callback){
+  if (typeof io !== 'undefined'){
+    try{ socket = io(); }catch(e){ console.warn('socket init error', e); }
+    if (callback) callback();
+    return;
+  }
+  // load CDN fallback
+  const s = document.createElement('script');
+  s.src = 'https://cdn.socket.io/4.5.4/socket.io.min.js';
+  s.onload = () => {
+    try{ socket = (typeof io !== 'undefined') ? io() : null; }catch(e){ console.warn('socket init error', e); }
+    if (callback) callback();
+  };
+  s.onerror = () => { console.warn('Failed to load Socket.IO client fallback'); if (callback) callback(); };
+  document.head.appendChild(s);
+}
+ensureSocketClient();
 
 // ----------------- Configuration -----------------
 const TIME_LIMIT = 30;
@@ -326,16 +350,20 @@ function saveResults() {
   if (leaderboard[lbKey].length > 10) leaderboard[lbKey] = leaderboard[lbKey].slice(0, 10);
   localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
 
-  // Submit score to global leaderboard server
-  socket.emit('submitScore', {
-    category: category,
-    mode: gameMode,
-    name: PLAYER_NAME,
-    avatar: PLAYER_AVATAR,
-    score: totalPoints,
-    correct: correctCount,
-    total: qsList.length
-  });
+  // Submit score to global leaderboard server (guarded)
+  if (socket && typeof socket.emit === 'function') {
+    socket.emit('submitScore', {
+      category: category,
+      mode: gameMode,
+      name: PLAYER_NAME,
+      avatar: PLAYER_AVATAR,
+      score: totalPoints,
+      correct: correctCount,
+      total: qsList.length
+    });
+  } else {
+    console.warn('Socket not available; score not submitted to server.');
+  }
 }
 
 // ----------------- Finish Quiz -----------------

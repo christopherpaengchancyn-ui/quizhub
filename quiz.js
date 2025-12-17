@@ -6,6 +6,8 @@ const AVATARS = [
   'avatar11.jpg', 'avatar12.jpg', 'avatar13.jpg', 'avatar14.jpg', 'avatar15.jpg',
   'avatar16.jpg', 'avatar17.jpg', 'avatar18.jpg', 'avatar19.jpg', 'avatar20.jpg',
   'avatar21.jpg',
+  // Extra avatars added
+  'avatar-1.jpg', 'avatar0.jpg',
   // Logo avatars
   'isulogo.jpg', 'ITlogo.jpg'
 ];

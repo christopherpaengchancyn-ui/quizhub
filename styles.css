@@ -1,92 +1,157 @@
 :root{
-  --bg:#0f1112;
-  --card:#24201c;
-  --muted:#cfc5b8;
-  --accent:#b68b5a;
-  --accent-2:#d9b78a;
-  --btn-hover:#d9b78a;
+    --lilac-blush: #9874D3;
+    --bg:#0f1112;
+    --card:#24201c;
+    --muted:#cfc5b8;
+    --accent:#b68b5a;
+    --accent-2:#d9b78a;
+    --btn-hover:#d9b78a;
+}
+
+html, body, .container, .page, .view, .modal, .app-root {
+    background-color: var(--lilac-blush) !important;
 }
 
 body{
-  margin:0;
-  font-family:Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial;
-  min-height:100vh;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  background: radial-gradient(1200px 600px at 10% 10%, rgba(182,139,90,0.06), transparent),
-              linear-gradient(180deg, #071018 0%, #0f1112 60%);
-  color:var(--muted);
-  padding:24px;
+    margin: 0;
+    font-family: Inter, system-ui, -apple-system, 'Segoe UI', Roboto, Arial;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: var(--lilac-blush) !important; /* Lilac Blush */
+    color: var(--muted);
+    padding: 24px;
 }
 
 .card{
-  background: var(--card);
-  padding:28px;
-  border-radius:16px;
-  border:1px solid rgba(255,255,255,0.03);
-  box-shadow:0 6px 30px rgba(0,0,0,0.5);
-  width:100%;
-  max-width:600px;
+    background: var(--card);
+    padding: 28px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.03);
+    box-shadow: 0 6px 30px rgba(0,0,0,0.5);
+    width: 100%;
+    max-width: 600px;
 }
 
 h2{
-  color:var(--accent-2);
-  text-align:center;
-  margin-bottom:20px;
+    color: var(--accent-2);
+    text-align: center;
+    margin-bottom: 20px;
 }
 
-input, button{
-  font-family:inherit; font-size:14px;
+input,
+button{
+    font-family: inherit;
+    font-size: 14px;
 }
 
 input{
-  width:100%; padding:10px; margin:8px 0; border-radius:8px;
-  border:1px solid rgba(255,255,255,0.04); background:rgba(255,255,255,0.015);
-  color:var(--muted);
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 8px;
+    border: 1px solid rgba(255,255,255,0.04);
+    background: rgba(255,255,255,0.015);
+    color: var(--muted);
 }
 
 button{
-  padding:12px 18px; border:none; border-radius:12px; cursor:pointer; transition:0.2s;
+    padding: 12px 18px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: 0.2s;
 }
 
 button.btn{
-  width:100%; background: linear-gradient(90deg,var(--accent),var(--accent-2));
-  color:#fff; font-weight:600; margin:6px 0;
+    width: 100%;
+    background: linear-gradient(90deg,var(--accent),var(--accent-2));
+    color: #fff;
+    font-weight: 600;
+    margin: 6px 0;
 }
 
 button.btn:hover{
-  background: var(--btn-hover); color:#000;
+    background: var(--btn-hover);
+    color: #000;
 }
 
+/* answers container and choices */
+
 .answers{
-  display:flex;
-  flex-direction:column;
-  gap:12px;
-  margin-bottom:20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+    align-items: stretch;             /* allow choices to expand to available width */
 }
 
 button.choice{
-  background: rgba(182,139,90,0.1);
-  color: var(--muted);
-  text-align:left;
-  padding:12px;
-  font-weight:500;
-  border-radius:10px;
+    background: rgba(182,139,90,0.1);
+    color: var(--muted);
+    /* make buttons span most of the card but limit to a comfortable max width */
+    box-sizing: border-box;
+    width: calc(100% - 32px);         /* leave horizontal breathing room */
+    max-width: 480px;                 /* target visual width up to white marks */
+    padding: 0.9rem 1.6rem;           /* increased horizontal padding to reach near card edges */
+    font-weight: 500;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+    text-align: center;               /* center text inside */
+    display: flex;
+    justify-content: center;          /* center content horizontally */
+    align-items: center;              /* center content vertically */
+    margin: 0.4rem auto;              /* center button and add small vertical spacing */
 }
 
 button.choice:hover{
-  background: rgba(182,139,90,0.3);
+    background: rgba(182,139,90,0.3);
+}
+
+/* clearly visible selected state */
+button.choice.selected{
+    background: rgba(182,139,90,0.6);
+    color: #ffffff;
+}
+
+/* Generic answer-choice centering for other patterns */
+.answer-choice, .option, .choices, .answers, .choice, .answer, .answer-row, .choice-row, .choice-field, .option-choice{
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+}
+
+/* Make individual answer containers constrained and centered so choices span most of the card */
+.answer-choice, .option {
+    width: 100%;
+    max-width: 480px;
+    margin: 0.4rem auto; /* centers container and provides vertical spacing */
+    box-sizing: border-box;
+}
+
+/* Inputs & labels: ensure CSS-only selected visual state without touching JS logic */
+input[type="radio"], input[type="checkbox"]{ margin-right:8px; }
+input[type="radio"]:checked + label,
+input[type="checkbox"]:checked + label,
+button.choice.selected,
+.choice.selected,
+.selected{
+    background: rgba(0,0,0,0.18) !important;
+    color: #ffffff !important;
+    border-color: rgba(255,255,255,0.12) !important;
 }
 
 footer{
-  display:flex;
-  justify-content:space-between;
-  margin-top:12px;
+    display: flex;
+    justify-content: space-between;
+    margin-top: 12px;
 }
 
 .muted{
-  color:rgba(255,255,255,0.5);
-  font-size:13px;
-  text-align:center;
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    text-align: center;
 }
